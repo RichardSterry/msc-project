@@ -25,7 +25,8 @@ class MaskedMSE(nn.Module):
     # Taken from
     # https://github.com/spro/practical-pytorch/blob/master/seq2seq-translation
     @staticmethod
-    def _sequence_mask(sequence_length, max_len):
+    def _sequence_mask(sequence_length):
+        max_len = sequence_length.data.max()
         batch_size = sequence_length.size(0)
         seq_range = torch.arange(0, max_len).long()
         seq_range_expand = seq_range.unsqueeze(0).expand(batch_size, max_len)
@@ -36,9 +37,8 @@ class MaskedMSE(nn.Module):
                                            .expand_as(seq_range_expand)
         return (seq_range_expand < seq_length_expand).t().float()
 
-    def forward(self, input, target, lengths):
-        max_len = input.size(0)
-        mask = self._sequence_mask(lengths, max_len).unsqueeze(2)
+    def forward(self, input, target, lengths):        
+        mask = self._sequence_mask(lengths).unsqueeze(2)
         mask_ = mask.expand_as(input)
         self.loss = self.criterion(input*mask_, target*mask_)
         self.loss = self.loss / mask.sum()
@@ -115,6 +115,7 @@ class GravesAttention(nn.Module):
         # attention weights
         phi_t = g_t * torch.exp(-0.5 * sig_t * (mu_t_ - j)**2)
         alpha_t = self.COEF * torch.sum(phi_t, 1)
+        alpha_t = alpha_t.unsqueeze(1)
 
         c_t = torch.bmm(alpha_t, context).transpose(0, 1).squeeze(0)
         return c_t, mu_t, alpha_t
