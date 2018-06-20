@@ -184,7 +184,7 @@ def main():
         checkpoint_args = torch.load(checkpoint_args_path)
 
         start_epoch = checkpoint_args[3]
-        model.load_state_dict(torch.load(args.checkpoint))
+        model.load_state_dict(torch.load(args.checkpoint, map_location=lambda storage, loc: storage))
 
     criterion = MaskedMSE().cuda()
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
