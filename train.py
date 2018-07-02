@@ -12,11 +12,13 @@ from tqdm import tqdm
 
 import torch
 import torch.optim as optim
+import torch.nn as nn
 
 from data import NpzFolder, NpzLoader, TBPTTIter
 from model import Loop, MaskedMSE
 from utils import create_output_dir, wrap, check_grad
 
+import model_discriminator as md
 
 parser = argparse.ArgumentParser(description='PyTorch Loop')
 # Env options:
@@ -96,27 +98,108 @@ valid_loader = NpzLoader(valid_dataset,
 logging.info("Dataset ready!")
 
 
-def train(model, criterion, optimizer, epoch, train_losses):
+def train(model, criterion, optimizer, epoch, train_losses, speaker_info, discriminator, discriminator_criterion,
+          discriminator_optimizer,
+          num_epochs_discriminator=500):
+
     total = 0   # Reset every plot_every
     model.train()
     train_enum = tqdm(train_loader, desc='Train epoch %d' % epoch)
 
+    min_acc = 1.0
+
+    counter = 0
     for full_txt, full_feat, spkr in train_enum:
+
+        # train discriminator
+        #discriminator.reset()
+        #discriminator.cuda()
+
+        u_spkr = np.unique(spkr.numpy())
+
+        embeddings = model.encoder.lut_s.weight[:-1, :].cpu().data.numpy()
+        train_data, valid_data = md.get_train_valid_split(embeddings, speaker_info)
+        discriminator_accuracy = md.eval_discriminator_accuracy(discriminator, train_data, discriminator_criterion)
+
+        #print "discriminator accuracy initialization: %0.3f" % discriminator_accuracy
+
+
+
+        embeddings = model.encoder.lut_s.weight[u_spkr, :].cpu().data.numpy()
+
+        #if embeddings.shape[0] == 108:
+        #    embeddings = np.delete(embeddings, -1, axis=0)
+
+        train_data, valid_data = md.get_train_valid_split(embeddings, speaker_info[speaker_info.index.isin(u_spkr)])
+
+        if counter == 0:
+            discriminator,  train_accuracy, valid_accuracy, train_loss, valid_loss = md.train_discriminator(discriminator, train_data, valid_data, discriminator_criterion,
+                                                   discriminator_optimizer,
+                                                   num_epochs=50) #num_epochs_discriminator
+
+            # extract the speaker embeddings from the model
+            embeddings = model.encoder.lut_s.weight.cpu().data.numpy()
+
+            # save the embeddings
+            np.save('start_embeddings', (embeddings, speaker_info))
+
+            counter += 1
+
         batch_iter = TBPTTIter(full_txt, full_feat, spkr, args.seq_len)
         batch_total = 0
+        reconstruction_loss_total = 0
 
         for txt, feat, spkr, start in batch_iter:
+            u_spkr2 = np.unique(spkr.numpy())
+            assert np.all(u_spkr == u_spkr2)
+
             input = wrap(txt)
             target = wrap(feat)
             spkr = wrap(spkr)
 
+
+
+
             # Zero gradients
             if start:
                 optimizer.zero_grad()
+                discriminator_optimizer.zero_grad()
+
+            #embeddings = model.encoder.lut_s.weight.cpu().data.numpy()
+            embeddings = model.encoder.lut_s.weight[u_spkr, :].cpu().data.numpy()
+
+            # if embeddings.shape[0] == 108:
+            #    embeddings = np.delete(embeddings, -1, axis=0)
+
+            train_data, valid_data = md.get_train_valid_split(embeddings, speaker_info[speaker_info.index.isin(u_spkr)])
+            discriminator, train_accuracy, valid_accuracy, train_loss, valid_loss = md.train_discriminator(
+                discriminator, train_data, valid_data, discriminator_criterion,
+                discriminator_optimizer,
+                num_epochs=40, b_print=False)  # num_epochs_discriminator
+
 
             # Forward
-            output, _ = model([input, spkr], target[0], start)
-            loss = criterion(output, target[0], target[1])
+            #gender = speaker_info[speaker_info.index == spkr.numpy()]
+            is_male = np.array(speaker_info.iloc[spkr.cpu().data.numpy().flatten()].gender == 'M')
+            gender = is_male.astype(np.float)
+            output, _ = model([input, spkr, gender], target[0], start)
+            reconstruction_loss = criterion(output, target[0], target[1])
+
+            # latent discriminator
+            #embeddings = model.encoder.lut_s.weight.cpu().data.numpy()
+            #embeddings = model.encoder.lut_s.weight
+            embeddings = model.encoder.lut_s.weight[u_spkr, :]
+
+            #if embeddings.shape[0] == 108:
+            #    embeddings = np.delete(embeddings, -1, axis=0)
+
+            train_data, valid_data = md.get_train_valid_split(embeddings, speaker_info[speaker_info.index.isin(u_spkr)])
+
+            discriminator_loss = md.eval_discriminator(discriminator, train_data, discriminator_criterion)
+
+            #loss = reconstruction_loss + 10 * discriminator_loss
+            loss = reconstruction_loss + 5 * discriminator_loss
+            #loss = discriminator_loss
 
             # Backward
             loss.backward()
@@ -128,11 +211,38 @@ def train(model, criterion, optimizer, epoch, train_losses):
 
             # Keep track of loss
             batch_total += loss.data[0]
+            reconstruction_loss_total += reconstruction_loss.data[0]
 
         batch_total = batch_total/len(batch_iter)
+        reconstruction_loss_total = reconstruction_loss_total/len(batch_iter)
         total += batch_total
-        train_enum.set_description('Train (loss %.2f) epoch %d' %
-                                   (batch_total, epoch))
+
+        embeddings = model.encoder.lut_s.weight[:-1,:]
+        train_data, valid_data = md.get_train_valid_split(embeddings, speaker_info)
+        accuracy = md.eval_discriminator_accuracy(discriminator, train_data, discriminator_criterion) # TODO wrong criterion??
+
+        train_enum.set_description('Train (total_loss %.2f, discrim_loss %.2f, reconstruction_loss %.2f, discrim_acc %.3f) epoch %d' %
+                                   (batch_total, discriminator_loss, reconstruction_loss_total, accuracy, epoch))
+
+        # extract the speaker embeddings from the model
+        embeddings = model.encoder.lut_s.weight.cpu().data.numpy()
+
+        # save the embeddings
+        if np.abs(accuracy - 0.5) < 0.05:
+            np.save('train_embeddings_random', (embeddings, speaker_info, accuracy, discriminator_loss))
+
+        if accuracy < 0.05:
+            np.save('train_embeddings_negative', (embeddings, speaker_info, accuracy, discriminator_loss))
+
+        if accuracy < min_acc:
+            np.save('train_embeddings_min', (embeddings, speaker_info, accuracy, discriminator_loss))
+            min_acc = accuracy
+
+            torch.save(model.state_dict(), '%s/minmodel.pth' % (args.expName))
+            torch.save([args, train_losses, accuracy, epoch],
+                       '%s/args.pth' % (args.expName))
+
+        np.save('train_embeddings_last', (embeddings, speaker_info, accuracy, discriminator_loss))
 
     avg = total / len(train_loader)
     train_losses.append(avg)
@@ -145,7 +255,7 @@ def train(model, criterion, optimizer, epoch, train_losses):
     logging.info('====> Train set loss: {:.4f}'.format(avg))
 
 
-def evaluate(model, criterion, epoch, eval_losses):
+def evaluate(model, criterion, epoch, eval_losses, speaker_info, discriminator, discriminator_criterion):
     total = 0
     valid_enum = tqdm(valid_loader, desc='Valid epoch %d' % epoch)
 
@@ -154,13 +264,24 @@ def evaluate(model, criterion, epoch, eval_losses):
         target = wrap(feat, volatile=True)
         spkr = wrap(spkr, volatile=True)
 
-        output, _ = model([input, spkr], target[0])
-        loss = criterion(output, target[0], target[1])
+        is_male = np.array(speaker_info.iloc[spkr.cpu().data.numpy().flatten()].gender == 'M')
+        gender = is_male.astype(np.float)
+        output, _ = model([input, spkr, gender], target[0])
+        reconstruction_loss = criterion(output, target[0], target[1])
+
+        embeddings = model.encoder.lut_s.weight[:-1, :]
+        train_data, valid_data = md.get_train_valid_split(embeddings, speaker_info)
+        discriminator_loss = md.eval_discriminator(discriminator, train_data, discriminator_criterion)
+
+        loss = reconstruction_loss + 10 * discriminator_loss
 
         total += loss.data[0]
 
-        valid_enum.set_description('Valid (loss %.2f) epoch %d' %
-                                   (loss.data[0], epoch))
+        accuracy = md.eval_discriminator_accuracy(discriminator, train_data, discriminator_criterion)
+
+        valid_enum.set_description('Valid (loss %.2f, discrim_loss %.2f, reconstruction_loss %.2f, discrim_acc %.3f) epoch %d' %
+                                   (loss.data[0], reconstruction_loss, discriminator_loss, accuracy, epoch))
+
 
     avg = total / len(valid_loader)
     eval_losses.append(avg)
@@ -179,6 +300,12 @@ def main():
     model = Loop(args)
     model.cuda()
 
+    discriminator = md.LatentDiscriminator()
+    discriminator.cuda()
+
+    discriminator_criterion = nn.CrossEntropyLoss().cuda()
+    discriminator_optimizer = optim.Adam(discriminator.parameters(), lr=0.001)
+
     if args.checkpoint != '':
         checkpoint_args_path = os.path.dirname(args.checkpoint) + '/args.pth'
         checkpoint_args = torch.load(checkpoint_args_path)
@@ -189,6 +316,10 @@ def main():
     criterion = MaskedMSE().cuda()
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
 
+    speaker_info = md.get_speaker_info_for_discriminator()
+    num_epochs_discriminator = 50
+
+
     # Keep track of losses
     train_losses = []
     eval_losses = []
@@ -196,8 +327,12 @@ def main():
 
     # Begin!
     for epoch in range(start_epoch, start_epoch + args.epochs):
-        train(model, criterion, optimizer, epoch, train_losses)
-        eval_loss = evaluate(model, criterion, epoch, eval_losses)
+
+        # train loop
+        train(model, criterion, optimizer, epoch, train_losses, speaker_info, discriminator, discriminator_criterion,
+              discriminator_optimizer, num_epochs_discriminator=num_epochs_discriminator)
+
+        eval_loss = evaluate(model, criterion, epoch, eval_losses, speaker_info, discriminator, discriminator_criterion)
         if eval_loss < best_eval:
             torch.save(model.state_dict(), '%s/bestmodel.pth' % (args.expName))
             best_eval = eval_loss

@@ -9,7 +9,7 @@ import torch.nn as nn
 from torch.autograd import Variable
 from torch.nn.utils.rnn import pad_packed_sequence as unpack
 from torch.nn.utils.rnn import pack_padded_sequence as pack
-import numpy as np
+import torch.nn.functional as F
 
 
 def getLinear(dim_in, dim_out):
@@ -58,10 +58,8 @@ class Encoder(nn.Module):
         self.lut_s = nn.Embedding(self.nspk,
                                   self.hidden_size,
                                   max_norm=1.0)
-        self.lut_g = nn.Embedding(2, self.hidden_size, max_norm=1.0)
 
-
-    def forward(self, input, speakers, gender):
+    def forward(self, input, speakers):
         if isinstance(input, tuple):
             lengths = input[1].data.view(-1).tolist()
             outputs = pack(self.lut_p(input[0]), lengths)
@@ -73,15 +71,6 @@ class Encoder(nn.Module):
         ident = self.lut_s(speakers)
         if ident.dim() == 3:
             ident = ident.squeeze(1)
-
-        #gender = Variable(torch.from_numpy(gender.astype(np.single)).cuda())
-        #ident = torch.cat((ident, gender.unsqueeze(1)), -1)
-        ident_g = self.lut_g(Variable(torch.from_numpy(gender).type(torch.LongTensor).cuda()))
-
-        ident = ident + ident_g
-
-        #expanded_ident = ident.unsqueeze(0).expand(outputs.size(0), ident.size(0), ident.size(1))
-        #outputs = torch.cat((expanded_ident, outputs), -1)
 
         return outputs, ident
 
@@ -153,10 +142,8 @@ class Decoder(nn.Module):
         self.output = nn.Linear(self.hidden_size, self.output_size)
         self.N_u = getLinear(self.mem_elem, self.mem_feat_size)
 
-        #self.F_u = nn.Linear(self.hidden_size+1,  self.hidden_size)
-        #self.F_o = nn.Linear(self.hidden_size+1,  self.hidden_size)
-        self.F_u = nn.Linear(self.hidden_size, self.hidden_size)
-        self.F_o = nn.Linear(self.hidden_size, self.hidden_size)
+        self.F_u = nn.Linear(self.hidden_size,  self.hidden_size)
+        self.F_o = nn.Linear(self.hidden_size,  self.hidden_size)
 
     def init_buffer(self, ident, start=True):
         mem_feat_size = self.hidden_size + self.output_size
@@ -169,15 +156,10 @@ class Decoder(nn.Module):
                                                self.mem_size).zero_())
 
             # initialize with identity
-            #self.S_t[:, :self.hidden_size+1, :] = ident.unsqueeze(2) \
-            #                                         .expand(ident.size(0),
-            #                                                 ident.size(1),
-            #                                                 self.mem_size)
-
             self.S_t[:, :self.hidden_size, :] = ident.unsqueeze(2) \
-                .expand(ident.size(0),
-                        ident.size(1),
-                        self.mem_size)
+                                                     .expand(ident.size(0),
+                                                             ident.size(1),
+                                                             self.mem_size)
         else:
             self.mu_t = self.mu_t.detach()
             self.S_t = self.S_t.detach()
@@ -264,7 +246,7 @@ class Loop(nn.Module):
     def forward(self, src, tgt, start=True):
         x = self.init_input(tgt, start)
 
-        context, ident = self.encoder(src[0], src[1], src[2])
+        context, ident = self.encoder(src[0], src[1])
         out, attn = self.decoder(x, ident, context, start)
 
         return out, attn
