@@ -8,7 +8,8 @@ import numpy as np
 
 import matplotlib
 import matplotlib.cm as cm
-import matplotlib.pyplot as plt
+
+#import matplotlib.pyplot as plt
 
 import torch
 from model import Loop as Loop_Base
@@ -45,7 +46,9 @@ import glob as gl
 from IPython.display import display, HTML
 
 import pydub as pyd
+
 import spectrogram as sp
+
 from utils import generate_merlin_wav
 
 from data import *
@@ -389,7 +392,7 @@ def display_vctk_sample(vctk_speaker_id, sample_id):
     plot_spectrogram(wav_data, rate)
 
 
-def generate_sample_with_loop(npz='', text='', spkr_id=1,
+def generate_sample_with_loop(npz='', text='', spkr_id=1, gender=1,
                               checkpoint='models/vctk-16khz-cmu-no-boundaries-all/bestmodel.pth',
                               output_dir='./',
                               npz_path='/home/ubuntu/loop/data/vctk-16khz-cmu-no-boundaries-all/numpy_features',
@@ -403,6 +406,7 @@ def generate_sample_with_loop(npz='', text='', spkr_id=1,
     # checkpoint = 'checkpoints/vctk/lastmodel.pth'
     # checkpoint = 'models/vctk/bestmodel.pth'
 
+    gender = np.array(gender).reshape(-1)
     out_dict = dict()
 
     if not os.path.exists(output_dir):
@@ -429,7 +433,8 @@ def generate_sample_with_loop(npz='', text='', spkr_id=1,
 
     # prepare loop model
     if ident_override:
-        model = Loop_Ident(train_args)
+        #model = Loop_Ident(train_args)
+        pass
     else:
         model = Loop_Base(train_args)
 
@@ -484,9 +489,9 @@ def generate_sample_with_loop(npz='', text='', spkr_id=1,
     # run loop model to generate output features
     # print(ident_override)
     if ident_override:
-        loop_feat, attn = model([txt, spkr], feat, ident_override=ident_override)
+        loop_feat, attn = model([txt, spkr, gender], feat, ident_override=ident_override)
     else:
-        loop_feat, attn = model([txt, spkr], feat)
+        loop_feat, attn = model([txt, spkr, gender], feat)
 
     loop_feat, attn = trim_pred(loop_feat, attn)
 
@@ -502,14 +507,14 @@ def generate_sample_with_loop(npz='', text='', spkr_id=1,
     # print output_dir
 
     # generate .wav file from loop output features
-    print(output_dir)
-    print(output_file)
-    print(norm_path)
+    #print(output_dir)
+    #print(output_file)
+    #print(norm_path)
 
-    #generate_merlin_wav(loop_feat.data.cpu().numpy(),
-    #                    output_dir,
-    #                    output_file,
-    #                    norm_path)
+    generate_merlin_wav(loop_feat.data.cpu().numpy(),
+                        output_dir,
+                        output_file,
+                        norm_path)
 
     # generate .wav file from original features for reference
     if npz is not '':
