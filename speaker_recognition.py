@@ -77,6 +77,7 @@ class RecognitionNet(nn.Module):
         # ave pooling over time
         # x = self.pool(x)
         x = torch.max(x, dim=2)[0]
+        #x = torch.mean(x, dim=2)
         # print x.size()
 
         x = x.view(-1, self.num_flat_features(x))
@@ -96,6 +97,14 @@ class RecognitionNet(nn.Module):
     def cuda(self, device_id=None):
         nn.Module.cuda(self, device_id)
 
+
+class SpeakerRecognition(object):
+    def __init__(self, checkpoint='checkpoints/speaker_recognition/lastmodel.pth', ):
+        weights = torch.load(checkpoint, map_location=lambda storage, loc: storage)
+        opt = torch.load(os.path.dirname(checkpoint) + '/args.pth')
+        train_args = opt[0]
+
+        self.net = RecognitionNet()
 
 def evaluate(net, criterion, loader, epoch=1, eval_losses=[]):
     total = 0
@@ -154,7 +163,7 @@ def evaluate(net, criterion, loader, epoch=1, eval_losses=[]):
 
 
 
-def train(data_path='data/vctk', seq_len=300, nspk=22, num_epochs=5, batch_size=64, max_seq_len=1000):
+def train(data_path='data/vctk', seq_len=300, nspk=22, num_epochs=5, batch_size=64, max_seq_len=1000, exp_name='speaker_recognition'):
 
     # get dataset loaders
     train_loader, valid_loader = get_loaders(data_path, max_seq_len, batch_size)
@@ -170,6 +179,7 @@ def train(data_path='data/vctk', seq_len=300, nspk=22, num_epochs=5, batch_size=
     # adam optimizer
     optimizer = optim.Adam(net.parameters(), lr=0.001)
 
+    best_acc = 0
     train_losses = []
     for epoch in range(num_epochs):
         train_enum = tqdm(train_loader, desc='Train epoch %d' % epoch)
@@ -226,6 +236,18 @@ def train(data_path='data/vctk', seq_len=300, nspk=22, num_epochs=5, batch_size=
         valid_loss, valid_accuracy, all_pred, all_gt, all_correct = evaluate(net, criterion, valid_loader)
         print "Validation accuracy: %.3f" % valid_accuracy
 
+        if valid_accuracy > best_acc:
+            best_acc = valid_accuracy
+
+            exp_name = os.path.join('checkpoints', exp_name)
+            if not os.path.exists(exp_name):
+                os.makedirs(exp_name)
+
+            torch.save(net.state_dict(), '%s/bestmodel.pth' % (exp_name))
+            #torch.save([train_losses, eval_dict],
+            #           '%s/args.pth' % (exp_name))
+
+
     # all training done. Build final loss & accuracy stats
     train_loss, train_accuracy, all_pred, all_gt, all_correct = evaluate(net, criterion, train_loader, epoch=epoch)
     valid_loss, valid_accuracy, all_pred, all_gt, all_correct = evaluate(net, criterion, valid_loader, epoch=epoch)
@@ -250,7 +272,8 @@ def train_speaker_recognition(  gpu=0,
                                 max_seq_len = 1000,
                                 seq_len = 300,
                                 batch_size = 64,
-                                num_epochs = 5):
+                                num_epochs = 5,
+                                exp_name='speaker_recognition'):
 
     torch.cuda.set_device(gpu)
     torch.manual_seed(seed)
@@ -261,14 +284,8 @@ def train_speaker_recognition(  gpu=0,
                                                     nspk=nspk,
                                                     num_epochs=num_epochs,
                                                     max_seq_len=max_seq_len,
-                                                    batch_size=batch_size)
-
-    return net, criterion, train_losses, eval_dict
-
-
-
-def main(exp_name = 'speaker_recognition'):
-    net, criterion, train_losses, eval_dict = train_speaker_recognition(num_epochs=1)
+                                                    batch_size=batch_size,
+                                                    exp_name=exp_name)
 
     exp_name = os.path.join('checkpoints', exp_name)
     if not os.path.exists(exp_name):
@@ -277,6 +294,15 @@ def main(exp_name = 'speaker_recognition'):
     torch.save(net.state_dict(), '%s/lastmodel.pth' % (exp_name))
     torch.save([train_losses, eval_dict],
                '%s/args.pth' % (exp_name))
+
+    return net, criterion, train_losses, eval_dict
+
+
+
+def main(exp_name = 'speaker_recognition'):
+    net, criterion, train_losses, eval_dict = train_speaker_recognition(num_epochs=1)
+
+
 
 
 if __name__ == '__main__':

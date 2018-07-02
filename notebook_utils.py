@@ -8,6 +8,7 @@ import numpy as np
 
 import matplotlib
 import matplotlib.cm as cm
+
 #import matplotlib.pyplot as plt
 
 import torch
@@ -45,7 +46,9 @@ import glob as gl
 from IPython.display import display, HTML
 
 import pydub as pyd
-#import spectrogram as sp
+
+import spectrogram as sp
+
 from utils import generate_merlin_wav
 
 from data import *
@@ -404,7 +407,6 @@ def generate_sample_with_loop(npz='', text='', spkr_id=1, gender=1,
     # checkpoint = 'models/vctk/bestmodel.pth'
 
     gender = np.array(gender).reshape(-1)
-
     out_dict = dict()
 
     if not os.path.exists(output_dir):
