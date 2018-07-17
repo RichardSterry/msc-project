@@ -140,11 +140,10 @@ def mse_manual(model_output, model_target, sequence_length):
     assert (loss_contrib.sum() - loss_avg).abs().cpu().data.numpy() < 1e-4, "Loss contrib doesn't add up"
     return loss_avg, loss_contrib
 
-
-def evaluate(model, loader, criterion):
+def evaluate(model, loader, criterion, msg=''):
     total = 0
     my_total = 0
-    valid_enum = tqdm(loader, desc='Calculating loss')
+    valid_enum = tqdm(loader, desc='Calculating loss:' + msg)
 
     all_output = []
     all_txt = []

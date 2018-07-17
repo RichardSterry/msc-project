@@ -17,6 +17,11 @@ import torch.nn as nn
 from data import NpzFolder, NpzLoader, TBPTTIter
 from model import Loop, MaskedMSE
 from utils import create_output_dir, wrap, check_grad
+from training_monitor import TrainingMonitor
+import evaluate_loss_func_for_notebook as el
+import eval_mcd as eval_mcd
+import pickle
+import eval_curves as ec
 
 import model_discriminator as md
 
@@ -36,6 +41,8 @@ parser.add_argument('--gpu', default=0,
                     metavar='G', type=int, help='GPU device ID')
 parser.add_argument('--visualize', action='store_true',
                     help='Visualize train and validation loss.')
+parser.add_argument('--eval-epochs', type=int, default=1,
+                    help='how regularly to calculate evaluation metrics')
 # Data options
 parser.add_argument('--seq-len', type=int, default=100,
                     help='Sequence length for tbptt')
@@ -68,8 +75,11 @@ parser.add_argument('--mem-size', type=int, default=20,
                     help='Memory number of segments')
 
 
+
+
 # init
 args = parser.parse_args()
+args.expNameRaw = args.expName
 args.expName = os.path.join('checkpoints', args.expName)
 torch.cuda.set_device(args.gpu)
 torch.manual_seed(args.seed)
@@ -254,6 +264,8 @@ def train(model, criterion, optimizer, epoch, train_losses, speaker_info, discri
 
     logging.info('====> Train set loss: {:.4f}'.format(avg))
 
+    return avg
+
 
 def evaluate(model, criterion, epoch, eval_losses, speaker_info, discriminator, discriminator_criterion):
     total = 0
@@ -324,22 +336,62 @@ def main():
     train_losses = []
     eval_losses = []
     best_eval = float('inf')
+    training_monitor = TrainingMonitor(file=args.expNameRaw,
+                                       exp_name=args.expNameRaw,
+                                       b_append=True,
+                                       path='training_logs')
 
     # Begin!
     for epoch in range(start_epoch, start_epoch + args.epochs):
-
         # train loop
         train(model, criterion, optimizer, epoch, train_losses, speaker_info, discriminator, discriminator_criterion,
               discriminator_optimizer, num_epochs_discriminator=num_epochs_discriminator)
 
+        # evaluate on validations set
         eval_loss = evaluate(model, criterion, epoch, eval_losses, speaker_info, discriminator, discriminator_criterion)
+
+        #chk, _, _, _ = ec.evaluate(model=model,
+        #                                  criterion=criterion,
+        #                                  epoch=epoch,
+        #                                  loader=valid_loader,
+        #                                  metrics=('loss')
+        #                                  )
+
+        # save checkpoint for this epoch
+        # I'm saving every epoch so I can compute evaluation metrics across the training curve later on
+        torch.save(model.state_dict(), '%s/epoch_%d.pth' % (args.expName, epoch))
+        torch.save([args, train_losses, eval_losses, epoch],
+                   '%s/args.pth' % (args.expName))
+
+
+
         if eval_loss < best_eval:
+            # if this is the best model yet, save it as 'bestmodel'
             torch.save(model.state_dict(), '%s/bestmodel.pth' % (args.expName))
             best_eval = eval_loss
 
+        # also keep a running copy of 'lastmodel'
         torch.save(model.state_dict(), '%s/lastmodel.pth' % (args.expName))
         torch.save([args, train_losses, eval_losses, epoch],
                    '%s/args.pth' % (args.expName))
+
+        # evaluate on a randomised subset of the training set
+        if epoch % args.eval_epochs == 0:
+            train_eval_loader = ec.get_training_data_for_eval(data=args.data,
+                                                               len_valid=len(valid_loader.dataset))
+
+            train_loss, _, _ ,_ = ec.evaluate(model=model,
+                                                criterion=criterion,
+                                                epoch=epoch,
+                                                loader=train_eval_loader,
+                                                metrics=('loss')
+                                                )
+        else:
+            train_loss = None
+
+        # store loss metrics
+        training_monitor.insert(epoch=epoch, valid_loss=eval_loss, train_loss=train_loss)
+        training_monitor.write()
 
 
 if __name__ == '__main__':

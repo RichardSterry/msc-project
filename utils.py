@@ -226,9 +226,7 @@ def generate_merlin_wav(
         'VSUM': sptkdir + 'vsum'}
 
     worlddir = os.path.abspath(os.path.dirname(__file__) + "/tools/WORLD/") + '/'
-    #print(worlddir)
     worlddir = '/home/ubuntu/loop/tools/WORLD/'
-    #print(worlddir)
     world_path = {
         'ANALYSIS': worlddir + 'analysis',
         'SYNTHESIS': worlddir + 'synth'}
