@@ -83,7 +83,7 @@ class GravesAttention(nn.Module):
         self.attention_alignment = attention_alignment
         self.epsilon = 1e-5
 
-        self.sm = nn.Softmax()
+        self.sm = nn.Softmax(dim=1)
         self.N_a = getLinear(mem_elem, 3*K)
         self.J = Variable(torch.arange(0, 500)
                                .expand_as(torch.Tensor(batch_size,

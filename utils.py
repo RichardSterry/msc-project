@@ -209,6 +209,7 @@ def generate_merlin_wav(
     co_coef = 511
 
     sptkdir = os.path.abspath(os.path.dirname(__file__) + "/tools/SPTK-3.9/") + '/'
+    sptkdir = '/home/ubuntu/loop/tools/SPTK-3.9/'
     sptk_path = {
         'SOPR': sptkdir + 'sopr',
         'FREQT': sptkdir + 'freqt',
@@ -225,6 +226,7 @@ def generate_merlin_wav(
         'VSUM': sptkdir + 'vsum'}
 
     worlddir = os.path.abspath(os.path.dirname(__file__) + "/tools/WORLD/") + '/'
+    worlddir = '/home/ubuntu/loop/tools/WORLD/'
     world_path = {
         'ANALYSIS': worlddir + 'analysis',
         'SYNTHESIS': worlddir + 'synth'}
