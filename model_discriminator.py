@@ -15,6 +15,16 @@ import evaluate_loss_func_for_notebook as el
 import copy
 
 
+class HLoss(nn.Module):
+    def __init__(self):
+        super(HLoss, self).__init__()
+
+    def forward(self, x, y=None):
+        b = F.softmax(x, dim=1) * F.log_softmax(x, dim=1)
+        b = -1.0 * b.sum()
+        return b
+
+
 class LatentDiscriminator(nn.Module):
     def __init__(self):
         super(LatentDiscriminator, self).__init__()
@@ -139,12 +149,13 @@ def eval_discriminator(net, train_data, criterion):
 
     #print "Initialized: train %0.3f / validation %0.3f" % (evaluate_latent_discriminator(net, train_data, criterion)[0], evaluate_latent_discriminator(net, valid_data, criterion)[0])
 
-    net.eval()
+    # taken out 18-Jul in the evening - not sure if this is correct
+    #net.eval()
 
     x = train_data[0]
     y = train_data[1]
 
-    y = (y + 1) % 2
+    y = (y + 1) % 2 # flip correct class - not sure where the idea for this came from, need to find out...
 
     #x_wrap = Variable(torch.from_numpy(x)).cuda()
     x_wrap = x

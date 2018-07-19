@@ -73,7 +73,8 @@ parser.add_argument('--nspk', type=int, default=22,
                     help='Number of speakers')
 parser.add_argument('--mem-size', type=int, default=20,
                     help='Memory number of segments')
-
+parser.add_argument('--debug', type=bool, default=False,
+                    help='Reduced size to help with debugging')
 
 
 
@@ -91,6 +92,9 @@ vis = visdom.Visdom(env=args.expName)
 # data
 logging.info("Building dataset.")
 train_dataset = NpzFolder(args.data + '/numpy_features', args.nspk == 1)
+if args.debug:
+    train_dataset.npzs = train_dataset.npzs[:1000]
+
 train_loader = NpzLoader(train_dataset,
                          max_seq_len=args.max_seq_len,
                          batch_size=args.batch_size,
@@ -99,6 +103,9 @@ train_loader = NpzLoader(train_dataset,
                          shuffle=True)
 
 valid_dataset = NpzFolder(args.data + '/numpy_features_valid', args.nspk == 1)
+if args.debug:
+    valid_dataset.npzs = valid_dataset.npzs[:500]
+
 valid_loader = NpzLoader(valid_dataset,
                          max_seq_len=args.max_seq_len,
                          batch_size=args.batch_size,
@@ -109,6 +116,7 @@ logging.info("Dataset ready!")
 
 
 def train(model, criterion, optimizer, epoch, train_losses, speaker_info, discriminator, discriminator_criterion,
+          discriminator_criterion_ent,
           discriminator_optimizer,
           num_epochs_discriminator=500):
 
@@ -167,9 +175,6 @@ def train(model, criterion, optimizer, epoch, train_losses, speaker_info, discri
             target = wrap(feat)
             spkr = wrap(spkr)
 
-
-
-
             # Zero gradients
             if start:
                 optimizer.zero_grad()
@@ -205,11 +210,15 @@ def train(model, criterion, optimizer, epoch, train_losses, speaker_info, discri
 
             train_data, valid_data = md.get_train_valid_split(embeddings, speaker_info[speaker_info.index.isin(u_spkr)])
 
-            discriminator_loss = md.eval_discriminator(discriminator, train_data, discriminator_criterion)
+            #discriminator_loss = md.eval_discriminator(discriminator, train_data, discriminator_criterion)
+            discriminator_loss = md.eval_discriminator(discriminator, train_data, discriminator_criterion_ent)
 
             #loss = reconstruction_loss + 10 * discriminator_loss
-            loss = reconstruction_loss + 5 * discriminator_loss
+            #loss = reconstruction_loss - 10 * discriminator_loss
+            loss = -discriminator_loss
+            #loss = reconstruction_loss + 5 * discriminator_loss
             #loss = discriminator_loss
+            #loss = reconstruction_loss # should go back to default case...
 
             # Backward
             loss.backward()
@@ -230,9 +239,11 @@ def train(model, criterion, optimizer, epoch, train_losses, speaker_info, discri
         embeddings = model.encoder.lut_s.weight[:-1,:]
         train_data, valid_data = md.get_train_valid_split(embeddings, speaker_info)
         accuracy = md.eval_discriminator_accuracy(discriminator, train_data, discriminator_criterion) # TODO wrong criterion??
+        disc_ent = md.eval_discriminator(discriminator, train_data,
+                                                  discriminator_criterion_ent)  # TODO wrong criterion??
 
-        train_enum.set_description('Train (total_loss %.2f, discrim_loss %.2f, reconstruction_loss %.2f, discrim_acc %.3f) epoch %d' %
-                                   (batch_total, discriminator_loss, reconstruction_loss_total, accuracy, epoch))
+        train_enum.set_description('Train (total_loss %.2f, discrim_loss %.2f, reconstruction_loss %.2f, discrim_acc %.3f, disc_ent %.3f) epoch %d' %
+                                   (batch_total, discriminator_loss, reconstruction_loss_total, accuracy, disc_ent, epoch))
 
         # extract the speaker embeddings from the model
         embeddings = model.encoder.lut_s.weight.cpu().data.numpy()
@@ -267,7 +278,7 @@ def train(model, criterion, optimizer, epoch, train_losses, speaker_info, discri
     return avg
 
 
-def evaluate(model, criterion, epoch, eval_losses, speaker_info, discriminator, discriminator_criterion):
+def evaluate(model, criterion, epoch, eval_losses, speaker_info, discriminator, discriminator_criterion, discriminator_criterion_ent):
     total = 0
     valid_enum = tqdm(valid_loader, desc='Valid epoch %d' % epoch)
 
@@ -284,15 +295,19 @@ def evaluate(model, criterion, epoch, eval_losses, speaker_info, discriminator, 
         embeddings = model.encoder.lut_s.weight[:-1, :]
         train_data, valid_data = md.get_train_valid_split(embeddings, speaker_info)
         discriminator_loss = md.eval_discriminator(discriminator, train_data, discriminator_criterion)
+        disc_loss = discriminator_loss.data[0]
 
-        loss = reconstruction_loss + 10 * discriminator_loss
+        loss = reconstruction_loss# + 10 * discriminator_loss
 
         total += loss.data[0]
 
-        accuracy = md.eval_discriminator_accuracy(discriminator, train_data, discriminator_criterion)
+        disc_accuracy = md.eval_discriminator_accuracy(discriminator, train_data, discriminator_criterion)
 
-        valid_enum.set_description('Valid (loss %.2f, discrim_loss %.2f, reconstruction_loss %.2f, discrim_acc %.3f) epoch %d' %
-                                   (loss.data[0], reconstruction_loss, discriminator_loss, accuracy, epoch))
+        ent_loss = md.eval_discriminator(discriminator, train_data, discriminator_criterion_ent)
+        ent_loss = ent_loss.data[0]
+
+        valid_enum.set_description('Valid (loss %.2f, discrim_loss %.2f, reconstruction_loss %.2f, discrim_acc %.3f, ent_loss %.3f) epoch %d' %
+                                   (loss.data[0], reconstruction_loss, discriminator_loss, disc_accuracy, ent_loss, epoch))
 
 
     avg = total / len(valid_loader)
@@ -304,7 +319,7 @@ def evaluate(model, criterion, epoch, eval_losses, speaker_info, discriminator, 
                  win='Eval loss ' + args.expName)
 
     logging.info('====> Test set loss: {:.4f}'.format(avg))
-    return avg
+    return avg, disc_loss, disc_accuracy, ent_loss
 
 
 def main():
@@ -317,6 +332,7 @@ def main():
 
     discriminator_criterion = nn.CrossEntropyLoss().cuda()
     discriminator_optimizer = optim.Adam(discriminator.parameters(), lr=0.001)
+    discriminator_criterion_ent = md.HLoss()
 
     if args.checkpoint != '':
         checkpoint_args_path = os.path.dirname(args.checkpoint) + '/args.pth'
@@ -339,16 +355,19 @@ def main():
     training_monitor = TrainingMonitor(file=args.expNameRaw,
                                        exp_name=args.expNameRaw,
                                        b_append=True,
-                                       path='training_logs')
+                                       path='training_logs',
+                                       columns=('epoch', 'update_time', 'train_loss', 'valid_loss', 'disc_loss', 'disc_accuracy', 'ent_loss')
+                                       )
 
     # Begin!
     for epoch in range(start_epoch, start_epoch + args.epochs):
         # train loop
         train(model, criterion, optimizer, epoch, train_losses, speaker_info, discriminator, discriminator_criterion,
-              discriminator_optimizer, num_epochs_discriminator=num_epochs_discriminator)
+              discriminator_criterion_ent,
+             discriminator_optimizer, num_epochs_discriminator=num_epochs_discriminator)
 
-        # evaluate on validations set
-        eval_loss = evaluate(model, criterion, epoch, eval_losses, speaker_info, discriminator, discriminator_criterion)
+        # evaluate on validation set
+        eval_loss, disc_loss, disc_accuracy, ent_loss = evaluate(model, criterion, epoch, eval_losses, speaker_info, discriminator, discriminator_criterion, discriminator_criterion_ent)
 
         #chk, _, _, _ = ec.evaluate(model=model,
         #                                  criterion=criterion,
@@ -363,34 +382,41 @@ def main():
         torch.save([args, train_losses, eval_losses, epoch],
                    '%s/args.pth' % (args.expName))
 
+        torch.save(discriminator.state_dict(), '%s/discriminator_epoch_%d.pth' % (args.expName, epoch))
 
 
         if eval_loss < best_eval:
             # if this is the best model yet, save it as 'bestmodel'
             torch.save(model.state_dict(), '%s/bestmodel.pth' % (args.expName))
+            torch.save(discriminator.state_dict(), '%s/discriminator_bestmodel.pth' % (args.expName))
             best_eval = eval_loss
 
         # also keep a running copy of 'lastmodel'
         torch.save(model.state_dict(), '%s/lastmodel.pth' % (args.expName))
         torch.save([args, train_losses, eval_losses, epoch],
                    '%s/args.pth' % (args.expName))
+        torch.save(discriminator.state_dict(), '%s/discriminator_lastmodel.pth' % (args.expName))
 
         # evaluate on a randomised subset of the training set
         if epoch % args.eval_epochs == 0:
             train_eval_loader = ec.get_training_data_for_eval(data=args.data,
                                                                len_valid=len(valid_loader.dataset))
 
-            train_loss, _, _ ,_ = ec.evaluate(model=model,
+            train_loss = ec.evaluate(model=model,
                                                 criterion=criterion,
                                                 epoch=epoch,
                                                 loader=train_eval_loader,
+                                                speaker_info=speaker_info,
+                                                discriminator=discriminator,
+                                                discriminator_criterion=discriminator_criterion,
                                                 metrics=('loss')
-                                                )
+                                                )[0]
         else:
             train_loss = None
 
         # store loss metrics
-        training_monitor.insert(epoch=epoch, valid_loss=eval_loss, train_loss=train_loss)
+        training_monitor.insert(epoch=epoch, valid_loss=eval_loss, train_loss=train_loss,
+                                disc_loss=disc_loss, disc_accuracy=disc_accuracy, ent_loss=ent_loss)
         training_monitor.write()
 
 

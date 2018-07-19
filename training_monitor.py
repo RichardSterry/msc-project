@@ -68,7 +68,7 @@ class TrainingMonitor(object):
 
 
     def insert(self, epoch, train_loss=None, valid_loss=None, mcd=None, train_acc=None, valid_acc=None, speaker_recognition_acc_eval=None,
-               update_time=None):
+               update_time=None, disc_loss=None, disc_accuracy=None, ent_loss=None):
         if not update_time:
             update_time = datetime_to_float(dt.datetime.now())
 

@@ -9,6 +9,8 @@ import numpy as np
 from tqdm import tqdm
 
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
 
 from data import NpzFolder, NpzLoader, TBPTTIter
 from model import Loop, MaskedMSE
@@ -19,6 +21,8 @@ import speaker_recognition as sr
 from dtw import dtw
 from torch.autograd import Variable
 
+import model_discriminator as md
+
 logSpecDbConst = 10.0 / np.log(10.0) * np.sqrt(2.0)
 
 
@@ -26,8 +30,16 @@ def logSpecDbDist(x, y):
     diff = x - y
     return logSpecDbConst * np.sqrt(np.inner(diff, diff))
 
+class HLoss(nn.Module):
+    def __init__(self):
+        super(HLoss, self).__init__()
 
-def get_loader(data_path='data/vctk', max_seq_len=1000, batch_size=64, nspk=22, b_valid=True):
+    def forward(self, x, y=None):
+        b = F.softmax(x, dim=1) * F.log_softmax(x, dim=1)
+        b = -1.0 * b.sum()
+        return b
+
+def get_loader(data_path='data/vctk', max_seq_len=1000, batch_size=64, nspk=22, b_valid=True, b_debug=False):
     if b_valid:
         dir = '/numpy_features_valid'
         shuffle = False
@@ -36,6 +48,8 @@ def get_loader(data_path='data/vctk', max_seq_len=1000, batch_size=64, nspk=22, 
         shuffle = True
 
     dataset = NpzFolder(data_path + dir, nspk == 1)
+    if b_debug:
+        dataset.npzs = dataset.npzs[:1000]
 
     loader = NpzLoader(dataset,
                              max_seq_len=max_seq_len,
@@ -136,7 +150,42 @@ def mse_manual(model_output, model_target, sequence_length):
     return loss_avg, loss_contrib
 
 
-def evaluate(model, criterion, epoch, loader, speaker_recog=None,
+def evaluate_from_train(model, criterion, epoch, eval_losses, speaker_info, discriminator, discriminator_criterion):
+    '''Delete this once happy with the next part'''
+    total = 0
+    valid_enum = tqdm(valid_loader, desc='Valid epoch %d' % epoch)
+
+    for txt, feat, spkr in valid_enum:
+        input = wrap(txt, volatile=True)
+        target = wrap(feat, volatile=True)
+        spkr = wrap(spkr, volatile=True)
+
+        is_male = np.array(speaker_info.iloc[spkr.cpu().data.numpy().flatten()].gender == 'M')
+        gender = is_male.astype(np.float)
+        output, _ = model([input, spkr, gender], target[0])
+        reconstruction_loss = criterion(output, target[0], target[1])
+
+        embeddings = model.encoder.lut_s.weight[:-1, :]
+        train_data, valid_data = md.get_train_valid_split(embeddings, speaker_info)
+        discriminator_loss = md.eval_discriminator(discriminator, train_data, discriminator_criterion)
+
+        loss = reconstruction_loss + 10 * discriminator_loss
+
+        total += loss.data[0]
+
+        accuracy = md.eval_discriminator_accuracy(discriminator, train_data, discriminator_criterion)
+
+        valid_enum.set_description('Valid (loss %.2f, discrim_loss %.2f, reconstruction_loss %.2f, discrim_acc %.3f) epoch %d' %
+                                   (loss.data[0], reconstruction_loss, discriminator_loss, accuracy, epoch))
+
+
+
+    logging.info('====> Test set loss: {:.4f}'.format(avg))
+    return avg
+
+
+def evaluate(model, criterion, epoch, loader, speaker_info, discriminator, discriminator_criterion,
+             speaker_recog=None,
              metrics=None):
 
     if not metrics:
@@ -183,13 +232,30 @@ def evaluate(model, criterion, epoch, loader, speaker_recog=None,
         target = wrap(feat, volatile=True)
         spkr = wrap(spkr, volatile=True)
 
+        is_male = np.array(speaker_info.iloc[spkr.cpu().data.numpy().flatten()].gender == 'M')
+        gender = is_male.astype(np.float)
+
         # loop forward pass
-        output, _ = model([input, spkr], target[0])
+        output, _ = model([input, spkr, gender], target[0])
 
         # loss calculation
         if 'loss' in metrics:
-            loss = criterion(output, target[0], target[1])
+            reconstruction_loss = criterion(output, target[0], target[1])
+
+            embeddings = model.encoder.lut_s.weight[:-1, :]
+            train_data, valid_data = md.get_train_valid_split(embeddings, speaker_info)
+            discriminator_loss = md.eval_discriminator(discriminator, train_data, discriminator_criterion)
+            disc_loss = discriminator_loss.data[0]
+
+            loss = reconstruction_loss# + 10 * discriminator_loss
+
             total += loss.data[0]
+
+            disc_accuracy = md.eval_discriminator_accuracy(discriminator, train_data, discriminator_criterion)
+
+            criterion_entropy = HLoss()
+            ent_loss = md.eval_discriminator(discriminator, train_data, criterion_entropy)
+            ent_loss = ent_loss.data[0]
 
         # speaker recognition on synth samples
         if 'speaker_recognition' in metrics:
@@ -289,7 +355,7 @@ def evaluate(model, criterion, epoch, loader, speaker_recog=None,
         y = [[(j, i) for i in range(x.shape[1])] for j, x in enumerate(all_output)]
         (loss_workings['idx_batch'], loss_workings['idx_pos_in_batch']) = zip(*[x for z in y for x in z])
 
-    return loss_avg, sr_accuracy, mcd_avg, loss_workings
+    return loss_avg, sr_accuracy, mcd_avg, loss_workings, disc_loss, disc_accuracy, ent_loss
 
 
 def calc_eval_curves(checkpoint_folder='models/vctk-all/',
@@ -310,7 +376,9 @@ def calc_eval_curves(checkpoint_folder='models/vctk-all/',
                      speaker_recognition_exp_name='notebook_test',
                      b_teacher_force=True,
                      b_use_train_noise=True,
-                     eval_metrics=('loss', 'speaker_recognition')):
+                     eval_metrics=('loss', 'speaker_recognition'),
+                     b_debug=False
+                     ):
 
     assert os.path.isdir(checkpoint_folder), "checkpoint_folder needs to be a valid directory"
 
@@ -318,14 +386,15 @@ def calc_eval_curves(checkpoint_folder='models/vctk-all/',
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
 
-    train_loader = get_loader(data, max_seq_len, batch_size, nspk, b_valid=False)
-    valid_loader = get_loader(data, max_seq_len, batch_size, nspk, b_valid=True)
+    train_loader = get_loader(data, max_seq_len, batch_size, nspk, b_valid=False, b_debug=b_debug)
+    valid_loader = get_loader(data, max_seq_len, batch_size, nspk, b_valid=True, b_debug=b_debug)
 
     criterion = MaskedMSE().cuda()
+    discriminator_criterion = nn.CrossEntropyLoss().cuda()
 
     # Keep track of losses
     training_monitor = TrainingMonitor(file=exp_name, exp_name=exp_name, b_append=b_append, path='training_logs',
-                                       columns=('epoch', 'update_time', 'train_loss', 'valid_loss', 'mcd', 'speaker_recognition_acc_eval'))
+                                       columns=('epoch', 'update_time', 'train_loss', 'valid_loss', 'mcd', 'speaker_recognition_acc_eval', 'disc_loss', 'disc_accuracy', 'ent_loss'))
 
     # Load pre-trained SpeakerRecognition model
     speaker_recog = sr.SpeakerRecognition(data_path=data,
@@ -350,11 +419,18 @@ def calc_eval_curves(checkpoint_folder='models/vctk-all/',
         checkpoint_list = (this_checkpoint_file, )
         epoch_list = (1,)
 
+    speaker_info = md.get_speaker_info_for_discriminator()
 
     # Loop through & evaluate the checkpoints
     for epoch, this_checkpoint_file in zip(epoch_list, checkpoint_list):
         # load model from checkpoint
         model = load_checkpoint(this_checkpoint_file)
+
+        # load discriminator
+        discriminator_checkpoint = this_checkpoint_file.replace("epoch_", "discriminator_epoch_")
+        discriminator = md.LatentDiscriminator()
+        discriminator.cuda()
+        discriminator.load_state_dict(torch.load(discriminator_checkpoint, map_location=lambda storage, loc: storage))
 
         # set noise & teacher forcing
         if b_teacher_force:
@@ -371,14 +447,22 @@ def calc_eval_curves(checkpoint_folder='models/vctk-all/',
         else:
             this_epoch_metrics = eval_metrics
 
-        valid_loss, valid_sr_accuracy, valid_mcd_avg, valid_loss_workings = evaluate(model, criterion=criterion, epoch=epoch,
-                                                                                     loader=valid_loader, speaker_recog=speaker_recog,
+        valid_loss, valid_sr_accuracy, valid_mcd_avg, valid_loss_workings, disc_loss, disc_accuracy, ent_loss = evaluate(model, criterion=criterion, epoch=epoch,
+                                                                                     loader=valid_loader,
+                                                                                     speaker_info=speaker_info,
+                                                                                     discriminator=discriminator,
+                                                                                     discriminator_criterion=discriminator_criterion,
+                                                                                     speaker_recog=speaker_recog,
                                                                                      metrics=this_epoch_metrics)
         save_loss_workings(exp_name, epoch, valid_loss_workings)
 
+
         train_eval_loader = get_training_data_for_eval(data=data, len_valid=len(valid_loader.dataset))
-        train_loss, train_sr_accuracy, train_mcd_avg, train_loss_workings = evaluate(model, criterion=criterion, epoch=epoch,
+        train_loss, train_sr_accuracy, train_mcd_avg, train_loss_workings, _, _, _ = evaluate(model, criterion=criterion, epoch=epoch,
                                                                   loader=train_eval_loader,
+                                                                  speaker_info=speaker_info,
+                                                                  discriminator=discriminator,
+                                                                  discriminator_criterion=discriminator_criterion,
                                                                   speaker_recog=speaker_recog,
                                                                   metrics = ('loss'))
 
@@ -386,7 +470,10 @@ def calc_eval_curves(checkpoint_folder='models/vctk-all/',
                                 valid_loss=valid_loss,
                                 train_loss=train_loss,
                                 mcd=valid_mcd_avg,
-                                speaker_recognition_acc_eval=valid_sr_accuracy)
+                                speaker_recognition_acc_eval=valid_sr_accuracy,
+                                disc_loss=disc_loss,
+                                disc_accuracy=disc_accuracy,
+                                ent_loss=ent_loss)
         training_monitor.write()
 
     training_monitor.disp()
@@ -405,11 +492,11 @@ def save_loss_workings(exp_name, epoch, loss_workings):
 
 #################################
 if __name__ == '__main__':
-    calc_eval_curves(checkpoint_folder='checkpoints/vctk-all',
+    calc_eval_curves(checkpoint_folder='checkpoints/fader_recreate_baseline_20180718_debug',
                      data='/home/ubuntu/loop/data/vctk-16khz-cmu-no-boundaries-all',
-                     speaker_recognition_checkpoint='checkpoints/speaker_recognition_vctk_all/bestmodel.pth',
+                     speaker_recognition_checkpoint='/home/ubuntu/msc-project-master/msc-project-master/checkpoints/speaker_recognition_vctk_all/bestmodel.pth',
                      speaker_recognition_exp_name='notebook_test',
-                     exp_name='vctk_all_20180716_teachT_noiseT',
+                     exp_name='fader_recreate_baseline_eval_curves_20180718_debug',
                      max_seq_len=1000,
                      nspk=107,
                      gpu=0,
@@ -419,76 +506,8 @@ if __name__ == '__main__':
                      b_teacher_force=True,
                      b_use_train_noise=True,
                      start_epoch=1,
-                     end_epoch=90,
-                     step_epoch=1
+                     end_epoch=2,
+                     step_epoch=1,
+                     b_debug=True
                      )
 
-    calc_eval_curves(checkpoint_folder='checkpoints/vctk-all-2-v2',
-                     data='/home/ubuntu/loop/data/vctk-16khz-cmu-no-boundaries-all',
-                     speaker_recognition_checkpoint='checkpoints/speaker_recognition_vctk_all/bestmodel.pth',
-                     speaker_recognition_exp_name='notebook_test',
-                     exp_name='vctk_all_2_v2_20180716_teachT_noiseT',
-                     max_seq_len=1000,
-                     nspk=107,
-                     gpu=0,
-                     batch_size=64,
-                     seed=1,
-                     eval_epochs=10,
-                     b_teacher_force=True,
-                     b_use_train_noise=True,
-                     start_epoch=90,
-                     end_epoch=163,
-                     step_epoch=1
-                     )
-
-    calc_eval_curves(checkpoint_folder='checkpoints/vctk-all',
-                     data='/home/ubuntu/loop/data/vctk-16khz-cmu-no-boundaries-all',
-                     speaker_recognition_checkpoint='checkpoints/speaker_recognition_vctk_all/bestmodel.pth',
-                     speaker_recognition_exp_name='notebook_test',
-                     exp_name='vctk_all_20180716_teachF_noiseF',
-                     max_seq_len=1000,
-                     nspk=107,
-                     gpu=0,
-                     batch_size=64,
-                     seed=1,
-                     eval_epochs=10,
-                     b_teacher_force=False,
-                     b_use_train_noise=False,
-                     start_epoch=1,
-                     end_epoch=90,
-                     step_epoch=1
-                     )
-
-    calc_eval_curves(checkpoint_folder='checkpoints/vctk-all-2-v2',
-                     data='/home/ubuntu/loop/data/vctk-16khz-cmu-no-boundaries-all',
-                     speaker_recognition_checkpoint='checkpoints/speaker_recognition_vctk_all/bestmodel.pth',
-                     speaker_recognition_exp_name='notebook_test',
-                     exp_name='vctk_all_2_v2_20180716_teachF_noiseF',
-                     max_seq_len=1000,
-                     nspk=107,
-                     gpu=0,
-                     batch_size=64,
-                     seed=1,
-                     eval_epochs=10,
-                     b_teacher_force=False,
-                     b_use_train_noise=False,
-                     start_epoch=90,
-                     end_epoch=163,
-                     step_epoch=1
-                     )
-
-
-    # calc_eval_curves(checkpoint_folder='checkpoints/vctk-us-train-mon',
-    #                 data='/home/ubuntu/loop/data/vctk',
-    #                 speaker_recognition_checkpoint='checkpoints/speaker-recognition-vctk-us/bestmodel.pth',
-    #                 speaker_recognition_exp_name='speaker-recognition-vctk-us',
-    #                 max_seq_len=1000,
-    #                 nspk=22,
-    #                 gpu=0,
-    #                 batch_size=64,
-    #                 seed=1,
-    #                 eval_epochs=2,
-    #                 b_teacher_force=False,
-    #                 b_use_train_noise=False,
-    #                 start_epoch=1,
-    #                 end_epoch=10)
