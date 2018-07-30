@@ -15,7 +15,7 @@ Examples of synthesized voice data for speaker embeddings at various values of t
 ## Fading Between Genders
 Mixing gender composition between pure male and female.
 
-| [Male, Female] | 295 | 44 | 80 | 
+| [M, F] | 295 | 44 | 80 | 
 | --- | --- | --- | --- |
 | Original | <audio src="audio/fader_networks/p272_295_45_orig.wav" controls></audio> | <audio src="audio/fader_networks/p272_044_45_orig.wav" controls></audio> | <audio src="audio/fader_networks/p272_080_45_orig.wav" controls></audio> | 
 | **[1, 0]** | <audio src="audio/fader_networks/p272_295_45_gender_concat_1_0.wav" controls></audio> | <audio src="audio/fader_networks/p272_044_45_gender_concat_1_0.wav" controls></audio> | <audio src="audio/fader_networks/p272_080_45_gender_concat_1_0.wav" controls></audio> |
@@ -26,11 +26,12 @@ Mixing gender composition between pure male and female.
 | [0.2, 0.8] | <audio src="audio/fader_networks/p272_295_45_gender_concat_0.2_0.8.wav" controls></audio> | <audio src="audio/fader_networks/p272_044_45_gender_concat_0.2_0.8.wav" controls></audio> | <audio src="audio/fader_networks/p272_080_45_gender_concat_0.2_0.8.wav" controls></audio> |
 | [0, 1] | <audio src="audio/fader_networks/p272_295_45_gender_concat_0_1.wav" controls></audio> | <audio src="audio/fader_networks/p272_044_45_gender_concat_0_1.wav" controls></audio> | <audio src="audio/fader_networks/p272_080_45_gender_concat_0_1.wav" controls></audio> |
 
+![txt]('lf0_p272_295_Extreme Values (No Mixing).png' "logo")
 
 ## Extreme Values of Gender Factors
-Investigation robustness with extreme values. Note there is no gender mixing in these samples.
+Investigating robustness with extreme values of gender factors. Note there is no gender mixing in these samples.
 
-| [Male, Female] | 295 | 44 | 80 | 
+| [M, F] | 295 | 44 | 80 | 
 | --- | --- | --- | --- |
 | Original | <audio src="audio/fader_networks/p272_295_45_orig.wav" controls></audio> | <audio src="audio/fader_networks/p272_044_45_orig.wav" controls></audio> | <audio src="audio/fader_networks/p272_080_45_orig.wav" controls></audio> | 
 | [2, 0] | <audio src="audio/fader_networks/p272_295_45_gender_concat_2_0.wav" controls></audio> | <audio src="audio/fader_networks/p272_044_45_gender_concat_2_0.wav" controls></audio> | <audio src="audio/fader_networks/p272_080_45_gender_concat_2_0.wav" controls></audio> |
