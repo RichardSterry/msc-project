@@ -26,7 +26,7 @@ Mixing gender composition between pure male and female.
 | [0.2, 0.8] | <audio src="audio/fader_networks/p272_295_45_gender_concat_0.2_0.8.wav" controls></audio> | <audio src="audio/fader_networks/p272_044_45_gender_concat_0.2_0.8.wav" controls></audio> | <audio src="audio/fader_networks/p272_080_45_gender_concat_0.2_0.8.wav" controls></audio> |
 | [0, 1] | <audio src="audio/fader_networks/p272_295_45_gender_concat_0_1.wav" controls></audio> | <audio src="audio/fader_networks/p272_044_45_gender_concat_0_1.wav" controls></audio> | <audio src="audio/fader_networks/p272_080_45_gender_concat_0_1.wav" controls></audio> |
 
-![txt](lf0_p272_295_Extreme Values (No Mixing).png "logo")
+![txt]("lf0_p272_295_Extreme_Values_No_Mixing.png "logo")
 
 ## Extreme Values of Gender Factors
 Investigating robustness with extreme values of gender factors. Note there is no gender mixing in these samples.
