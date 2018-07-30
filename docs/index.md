@@ -2,7 +2,7 @@
 # Gender Fader for VoiceLoop on VCTK 
 ### gender concat
 
-[I'm an inline-style link](fader_gender_p272.md)
+[p272 (Scottish Male)](fader_gender_p272.md)
 
 Examples of synthesized voice data for speaker embeddings at various values of the gender variable.
 
