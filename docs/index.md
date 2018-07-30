@@ -8,8 +8,8 @@ Examples of synthesized voice data for speaker embeddings at various values of t
 
 | [Male, Female] | p272_295 | p253_104 | p298_392 |
 | --- | --- | --- | --- |
-| Original | <audio src="audio/fader_networks/p272_295_45_orig.wav" controls></audio> | <audio src="audio/fader_networks/p253_104_26_orig.wav" controls></audio> | <audio src="audio/fader_networks/p298_392_66_orig.wav" controls></audio> |
-| [1, 0] | <audio src="audio/fader_networks/p272_295_45_gender_concat_1_0.wav" controls></audio> | <audio src="audio/fader_networks/p253_104_26_gender_concat_1_0.wav" controls></audio> | <audio src="audio/fader_networks/p298_392_66_gender_concat_1_0.wav" controls></audio> |
+| Original | <audio src="audio/fader_networks/p272_295_45_orig.wav"></audio> | <audio src="audio/fader_networks/p253_104_26_orig.wav" controls></audio> | <audio src="audio/fader_networks/p298_392_66_orig.wav" controls></audio> |
+| [1, 0] | <audio src="audio/fader_networks/p272_295_45_gender_concat_1_0.wav"></audio> | <audio src="audio/fader_networks/p253_104_26_gender_concat_1_0.wav" controls></audio> | <audio src="audio/fader_networks/p298_392_66_gender_concat_1_0.wav" controls></audio> |
 | [0.8, 0.2] | <audio src="audio/fader_networks/p272_295_45_gender_concat_0.8_0.2.wav" controls></audio> | <audio src="audio/fader_networks/p253_104_26_gender_concat_0.8_0.2.wav" controls></audio> | <audio src="audio/fader_networks/p298_392_66_gender_concat_0.8_0.2.wav" controls></audio> |
 | [0.6, 0.4] |<audio src="audio/fader_networks/p272_295_45_gender_concat_0.6_0.4.wav" controls></audio> | <audio src="audio/fader_networks/p253_104_26_gender_concat_0.6_0.4.wav" controls></audio> | <audio src="audio/fader_networks/p298_392_66_gender_concat_0.6_0.4.wav" controls></audio> |
 | [0.5, 0.5] |<audio src="audio/fader_networks/p272_295_45_gender_concat_0.5_0.5.wav" controls></audio> | <audio src="audio/fader_networks/p253_104_26_gender_concat_0.5_0.5.wav" controls></audio> | <audio src="audio/fader_networks/p298_392_66_gender_concat_0.5_0.5.wav" controls></audio> |
