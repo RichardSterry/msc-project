@@ -19,7 +19,7 @@ def datetime_to_float(d):
 
 class TrainingMonitor(object):
     def __init__(self, file, exp_name, b_append=True, path='training_logs',
-                 columns=('epoch', 'update_time', 'train_loss', 'valid_loss', 'mcd'),
+                 columns=('epoch', 'update_time', 'train_loss', 'valid_loss', 'mcd', 'valid_reconstruction_loss'),
                  source_file=None):
         self.path = path
         self.file = os.path.join(path, os.path.splitext(file)[0]) + ".csv"
@@ -68,7 +68,7 @@ class TrainingMonitor(object):
 
 
     def insert(self, epoch, train_loss=None, valid_loss=None, mcd=None, train_acc=None, valid_acc=None, speaker_recognition_acc_eval=None,
-               update_time=None, disc_loss=None, disc_accuracy=None, ent_loss=None):
+               update_time=None, disc_loss=None, disc_accuracy=None, ent_loss=None, valid_reconstruction_loss=None):
         if not update_time:
             update_time = datetime_to_float(dt.datetime.now())
 

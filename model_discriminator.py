@@ -21,23 +21,23 @@ class HLoss(nn.Module):
 
     def forward(self, x, y=None):
         b = F.softmax(x, dim=1) * F.log_softmax(x, dim=1)
-        b = -1.0 * b.sum()
+        b = -1.0 * b.sum(dim=1).mean()
         return b
 
+#if weight_norm:
+#    in_layer = nn.utils.weight_norm(in_layer)
+#    same out layer
 
 class LatentDiscriminator(nn.Module):
-    def __init__(self):
+    def __init__(self, n_in=256):
         super(LatentDiscriminator, self).__init__()
-
-        self.fc1 = nn.Linear(256, 32)
-        self.fc2 = nn.Linear(32, 16)
-        self.fc3 = nn.Linear(16, 2)
-
-        # self.fc1 = nn.Linear(256, 16)
-        # self.fc2 = nn.Linear(16, 2)
+        self.n_in = n_in
+        self.fc1 = nn.utils.weight_norm(nn.Linear(n_in, 32))
+        self.fc2 = nn.utils.weight_norm(nn.Linear(32, 16))
+        self.fc3 = nn.utils.weight_norm(nn.Linear(16, 2))
 
     def reset(self):
-        self.fc1 = nn.Linear(256, 32)
+        self.fc1 = nn.Linear(self.n_in, 32)
         self.fc2 = nn.Linear(32, 16)
         self.fc3 = nn.Linear(16, 2)
 
@@ -47,12 +47,6 @@ class LatentDiscriminator(nn.Module):
         x = self.fc2(x)
         x = F.relu(x)
         x = self.fc3(x)
-        # x = F.softmax(x, dim=0)
-
-        # x = self.fc1(x)
-        # x = F.relu(x)
-        # x = self.fc2(x)
-        # x = F.softmax(x, dim=0)
 
         return x
 
@@ -81,14 +75,11 @@ def evaluate_latent_discriminator(net, data, criterion):
 
     accuracy = 1.0*num_correct_pred / num_samples
 
-        #return avg, accuracy, all_pred, all_gt, all_correct
     return accuracy, loss.cpu().data.numpy()[0]
 
 
 def train_discriminator(net, train_data, valid_data, criterion, optimizer, num_epochs=500, b_print=True):
-
     net.train()
-    #net.eval()
 
     train_loss = np.zeros(num_epochs)
     valid_loss = np.zeros(num_epochs)
@@ -171,8 +162,6 @@ def eval_discriminator(net, train_data, criterion):
 
 def eval_discriminator_accuracy(net, train_data, criterion):
 
-    #print "Initialized: train %0.3f / validation %0.3f" % (evaluate_latent_discriminator(net, train_data, criterion)[0], evaluate_latent_discriminator(net, valid_data, criterion)[0])
-
     net.eval()
 
     num_samples = len(train_data[0])
@@ -184,12 +173,11 @@ def eval_discriminator_accuracy(net, train_data, criterion):
         x_wrap = Variable(torch.from_numpy(x)).cuda()
     else:
         x_wrap = x
-    y_wrap = Variable(torch.from_numpy(y.astype('uint8')).type(torch.FloatTensor)).cuda()
+
+   #y_wrap = Variable(torch.from_numpy(y.astype('uint8')).type(torch.FloatTensor)).cuda()
 
     # Forward
     output = net(x_wrap)
-
-    #loss = criterion(output, y_wrap.type(torch.cuda.LongTensor))
 
     y_pred = output.cpu().data.numpy().argmax(axis=1)
     correct_pred = y == y_pred
@@ -199,41 +187,16 @@ def eval_discriminator_accuracy(net, train_data, criterion):
 
     return accuracy
 
+
 def get_speaker_info_for_discriminator():
-    # location of the VCTK dataset
-    vctk_folder = '/home/ubuntu/VCTK-Corpus/'
-
-    # location of the raw pre-calculated feature files for VCTK from Jiameng
-    vctk_prebuilt_raw_folder = '/home/ubuntu/vctk-16khz-cmu-no-boundaries/'
-
     # location of the float32, train/validation files for VCTK-all
     vctk_precalc_folder = '/home/ubuntu/loop/data/vctk-16khz-cmu-no-boundaries-all'
-
-    # checkpoint = 'models/vctk/bestmodel.pth'
-
-
-    # data for this model
-    data = '/home/ubuntu/loop/data/vctk-16khz-cmu-no-boundaries-all'
-
-    # WORLD feature normalisation data
-    norm_path = '/home/ubuntu/loop/data/vctk-16khz-cmu-no-boundaries-all/norm_info/norm.dat'
-
-    # output embeddings to a file
-    output_file = '/tmp/embedding_file.npy'
-
-    gpu = 0
-    seed = 1
-    data = '/home/ubuntu/loop/data/vctk'
-    nspk = 22
-    max_seq_len = 1000
-    seq_len = 100
-    batch_size = 64
 
     speaker_info = get_vctk_speaker_info()
 
     loader = el.get_loader(data_path=vctk_precalc_folder)
 
-    loop_speaker_lookup = loader.dataset.speakers  # dict['p330'] = 88
+    loop_speaker_lookup = loader.dataset.speakers
 
     # Create dict from IDs used inside VoiceLoop to VCTK speaker IDs
     speaker_list_vctk = [int(k[1:]) for k in loop_speaker_lookup.keys()]  # list of VCTK speaker IDs; strip out the 'p'
@@ -271,39 +234,23 @@ def get_speaker_embeddings():
     return embeddings
 
 
-def get_train_valid_split(embeddings_in, speaker_info):
-    #assert embeddings.shape[0] == len(speaker_info)
-    embeddings = embeddings_in
-    #if isinstance(embeddings_in, np.ndarray):
-    #    embeddings = copy.deepcopy(embeddings_in)
-    #else:
-    #    embeddings = Variable(torch.from_numpy(embeddings_in.cpu().data.numpy())).cuda()
-
-    if embeddings.shape[0] != len(speaker_info):
-        tmp = speaker_info[10:11].copy()
-        #tmp.age = 25
-        speaker_info = pd.concat([speaker_info, tmp], ignore_index=True)
-        #if isinstance(embeddings_in, np.ndarray):
-        #    tst = embeddings[10, :]
-        #else:
-        #    tst = embeddings[10, :].clone()
-        #embeddings[-1, :] = tst
+def get_train_valid_split(embeddings, speaker_info, cutoff=None):
 
     num_examples = embeddings.shape[0]
 
-    #b_male = np.full(num_examples, False)
-    #b_male = np.random.choice([True, False], num_examples)
     b_male = np.array(speaker_info.gender == 'M')
 
-    idx_rand = np.random.permutation(num_examples)
-    cutoff = 95
-    idx_train = idx_rand[:cutoff]
-    idx_valid = idx_rand[cutoff:]
-    train_data = (embeddings[idx_train], b_male[idx_train])
-    #valid_data = (embeddings[idx_valid], b_male[idx_valid])
-
-    #!!!
-    valid_data = train_data
+    if cutoff:
+        # split the speakers into train and validation sets
+        idx_rand = np.random.permutation(num_examples)
+        idx_train = idx_rand[:cutoff]
+        idx_valid = idx_rand[cutoff:]
+        train_data = (embeddings[idx_train], b_male[idx_train])
+        valid_data = (embeddings[idx_valid], b_male[idx_valid])
+    else:
+        # just return the whole set
+        train_data = (embeddings, b_male)
+        valid_data = train_data
 
     return train_data, valid_data
 

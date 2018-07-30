@@ -12,6 +12,10 @@ from torch.nn.utils.rnn import pack_padded_sequence as pack
 import numpy as np
 
 
+#if weight_norm:
+#    in_layer = nn.utils.weight_norm(in_layer)
+#    same out layer
+
 def getLinear(dim_in, dim_out):
     return nn.Sequential(nn.Linear(dim_in, dim_in/10),
                          nn.ReLU(),
@@ -50,15 +54,21 @@ class Encoder(nn.Module):
     def __init__(self, opt):
         super(Encoder, self).__init__()
         self.hidden_size = opt.hidden_size
+        self.speaker_hidden_size = opt.speaker_hidden_size
         self.vocabulary_size = opt.vocabulary_size
         self.nspk = opt.nspk
+        self.gender_method = opt.gender_method #'concat'  # 'add'
+
         self.lut_p = nn.Embedding(self.vocabulary_size,
                                   self.hidden_size,
                                   max_norm=1.0)
+
         self.lut_s = nn.Embedding(self.nspk,
-                                  self.hidden_size,
+                                  self.speaker_hidden_size,
                                   max_norm=1.0)
+
         self.lut_g = nn.Embedding(2, self.hidden_size, max_norm=1.0)
+
 
 
     def forward(self, input, speakers, gender):
@@ -70,15 +80,28 @@ class Encoder(nn.Module):
         if isinstance(input, tuple):
             outputs = unpack(outputs)[0]
 
-        ident = self.lut_s(speakers)
-        if ident.dim() == 3:
-            ident = ident.squeeze(1)
+        if speakers.dim()==2 and speakers.size()[1] == 254:
+            # allow override with explicit embedding vector
+            ident = speakers
+        else:
+            ident = self.lut_s(speakers)
+            if ident.dim() == 3:
+                ident = ident.squeeze(1)
 
         #gender = Variable(torch.from_numpy(gender.astype(np.single)).cuda())
         #ident = torch.cat((ident, gender.unsqueeze(1)), -1)
-        ident_g = self.lut_g(Variable(torch.from_numpy(gender).type(torch.LongTensor).cuda()))
-
-        ident = ident + ident_g
+        if self.gender_method == 'add':
+            ident_g = self.lut_g(Variable(torch.from_numpy(gender).type(torch.LongTensor).cuda()))
+            ident = ident + ident_g
+        elif self.gender_method == 'concat':
+            if gender.ndim == 1:
+                gender_cat = np.vstack([gender, (gender + 1) % 2]).transpose()
+                ident_g = Variable(torch.from_numpy(gender_cat).type(torch.FloatTensor).cuda())
+                ident = torch.cat((ident, ident_g), -1)
+            else:
+                gender_cat = gender
+                ident_g = Variable(torch.from_numpy(gender_cat).type(torch.FloatTensor).cuda())
+                ident = torch.cat((ident, ident_g), -1)
 
         #expanded_ident = ident.unsqueeze(0).expand(outputs.size(0), ident.size(0), ident.size(1))
         #outputs = torch.cat((expanded_ident, outputs), -1)

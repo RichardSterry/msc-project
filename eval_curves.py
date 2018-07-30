@@ -36,7 +36,8 @@ class HLoss(nn.Module):
 
     def forward(self, x, y=None):
         b = F.softmax(x, dim=1) * F.log_softmax(x, dim=1)
-        b = -1.0 * b.sum()
+        #b = -1.0 * b.sum()
+        b = -1.0 * b.sum(dim=1).mean()
         return b
 
 def get_loader(data_path='data/vctk', max_seq_len=1000, batch_size=64, nspk=22, b_valid=True, b_debug=False):
@@ -62,11 +63,12 @@ def get_loader(data_path='data/vctk', max_seq_len=1000, batch_size=64, nspk=22, 
 
 def get_training_data_for_eval(data, len_valid=None, max_seq_len=1000, batch_size=64):
     """random set of training examples of the same size as the validation set"""
-    #if not len_valid:
-    #    len_valid = len(valid_dataset)
 
     # get list of all samples in the training fold
     train_eval_dataset = NpzFolder(data + '/numpy_features', False)
+
+    if not len_valid:
+        len_valid = len(train_eval_dataset)
 
     # pick a random subset with the same number of samples as the validation fold
     idx = np.random.permutation(len(train_eval_dataset))[:len_valid]
@@ -186,7 +188,12 @@ def evaluate_from_train(model, criterion, epoch, eval_losses, speaker_info, disc
 
 def evaluate(model, criterion, epoch, loader, speaker_info, discriminator, discriminator_criterion,
              speaker_recog=None,
-             metrics=None):
+             metrics=None,
+             lambda_reconstruction_loss=1.,
+             lambda_discriminator_loss=1.,
+             lambda_discriminator_loss_ent=1.,
+             lambda_schedule=1.
+             ):
 
     if not metrics:
         metrics = ('loss', 'mcd', 'loss_workings', 'speaker_recognition')
@@ -242,20 +249,28 @@ def evaluate(model, criterion, epoch, loader, speaker_info, discriminator, discr
         if 'loss' in metrics:
             reconstruction_loss = criterion(output, target[0], target[1])
 
-            embeddings = model.encoder.lut_s.weight[:-1, :]
+            embeddings = model.encoder.lut_s.weight
             train_data, valid_data = md.get_train_valid_split(embeddings, speaker_info)
             discriminator_loss = md.eval_discriminator(discriminator, train_data, discriminator_criterion)
             disc_loss = discriminator_loss.data[0]
 
-            loss = reconstruction_loss# + 10 * discriminator_loss
+            criterion_entropy = HLoss()
+            ent_loss = md.eval_discriminator(discriminator, train_data, criterion_entropy)
+            ent_loss = ent_loss.data[0]
+            print lambda_schedule
+            lambda_schedule_2 = min(1.0, 1.0 * (epoch - 1) / (1.0*lambda_schedule))
+            print lambda_schedule_2
+
+            # total loss
+            loss = lambda_reconstruction_loss * reconstruction_loss \
+                   + lambda_discriminator_loss * lambda_schedule_2 * disc_loss \
+                   + lambda_discriminator_loss_ent * lambda_schedule_2 * ent_loss
 
             total += loss.data[0]
 
             disc_accuracy = md.eval_discriminator_accuracy(discriminator, train_data, discriminator_criterion)
 
-            criterion_entropy = HLoss()
-            ent_loss = md.eval_discriminator(discriminator, train_data, criterion_entropy)
-            ent_loss = ent_loss.data[0]
+
 
         # speaker recognition on synth samples
         if 'speaker_recognition' in metrics:
