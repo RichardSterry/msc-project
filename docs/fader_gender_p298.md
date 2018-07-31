@@ -48,4 +48,6 @@ Investigating robustness with extreme values of gender factors. Note there is no
 ![lf0](audio/fader_networks/lf0_p298_137_Linear_Mixture.png)
 ![lf0](audio/fader_networks/lf0_p298_262_Linear_Mixture.png)
 
-<img src="audio/fader_networks/lf0_p298_329_Linear_Mixture.png" width="800" />
+<img src="audio/fader_networks/lf0_p298_329_Linear_Mixture.png" width="1400" />
+<img src="audio/fader_networks/lf0_p298_137_Linear_Mixture.png" width="1400" />
+<img src="audio/fader_networks/lf0_p298_262_Linear_Mixture.png" width="1400" />
