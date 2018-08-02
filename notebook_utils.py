@@ -12,7 +12,7 @@ import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 
 import torch
-from model import Loop as Loop_Base
+from model import Loop
 
 #from model_ident import Loop as Loop_Ident
 
@@ -47,7 +47,7 @@ from IPython.display import display, HTML
 
 import pydub as pyd
 
-import spectrogram as sp
+#import spectrogram as sp
 
 from utils import generate_merlin_wav
 
@@ -397,7 +397,7 @@ def generate_sample_with_loop(npz='', text='', spkr_id=1, gender=1,
                               output_dir='./',
                               npz_path='/home/ubuntu/loop/data/vctk-16khz-cmu-no-boundaries-all/numpy_features',
                               output_file_override=None,
-                              ident_override=None):
+                              embedding_array=None):
     # npz = ''
     # text = 'Your tickets for the social issues'
     # text = 'see that girl watch that scene'
@@ -420,28 +420,30 @@ def generate_sample_with_loop(npz='', text='', spkr_id=1, gender=1,
     opt = torch.load(os.path.dirname(checkpoint) + '/args.pth')
     train_args = opt[0]
 
-    train_dataset = NpzFolder('/home/ubuntu/loop/data/vctk-16khz-cmu-no-boundaries-all/numpy_features')
+    #train_dataset = NpzFolder('/home/ubuntu/loop/data/vctk-16khz-cmu-no-boundaries-all/numpy_features')
+    train_dataset = NpzFolder('/home/ubuntu/loop/data/vctk/numpy_features')
     char2code = train_dataset.dict
     spkr2code = train_dataset.speakers
     # print spkr2code.cpu().data
 
     norm_path = train_args.data + '/norm_info/norm.dat'
-    norm_path = '/home/ubuntu/loop/data/vctk-16khz-cmu-no-boundaries-all/norm_info/norm.dat'
+    #norm_path = '/home/ubuntu/loop/data/vctk-16khz-cmu-no-boundaries-all/norm_info/norm.dat'
     train_args.noise = 0
 
     valid_dataset_path = npz_path + '_valid'
 
     # prepare loop model
-    if ident_override:
+    #if ident_override:
         #model = Loop_Ident(train_args)
-        pass
-    else:
-        model = Loop_Base(train_args)
+    #    pass
+    #else:
+    model = Loop(train_args)
 
-    model.load_state_dict(weights)
+    model.load_state_dict(weights, strict=False)
     if gpu >= 0:
         model.cuda()
     model.eval()
+    model.noise = 0
 
     # check speaker id is valid
     if spkr_id not in range(len(spkr2code)):
@@ -461,21 +463,25 @@ def generate_sample_with_loop(npz='', text='', spkr_id=1, gender=1,
 
         out_dict['pre_calc_feat'] = pre_calc_feat
 
-    elif text is not '':
+    if text is not '':
         # use specified text string
         # extract phonemes from the text
+        print(text)
+
+        #_, feat, pre_calc_feat = npy_loader_phonemes(os.path.join(npz_path, npz))
+
         txt = text2phone(text, char2code)
-        feat = torch.FloatTensor(txt.size(0) * 20, 63)
-        spkr = torch.LongTensor([spkr_id])
+        #feat = torch.FloatTensor(txt.size(0) * 20, 63)
+        #spkr = torch.LongTensor([spkr_id])
 
         txt = Variable(txt.unsqueeze(1), volatile=True)
-        feat = Variable(feat.unsqueeze(1), volatile=True)
-        spkr = Variable(spkr, volatile=True)
+        #feat = Variable(feat.unsqueeze(1), volatile=True)
+        #spkr = Variable(torch.LongTensor([spkr_id]), volatile=True)
 
         output_file = text.replace(' ', '_')
-    else:
-        print('ERROR: Must supply npz file path or text as source.')
-        raise Exception('Need source')
+    #else:
+    # #   print('ERROR: Must supply npz file path or text as source.')
+    # #   raise Exception('Need source')
 
     if output_file_override:
         output_file = output_file_override
@@ -488,10 +494,13 @@ def generate_sample_with_loop(npz='', text='', spkr_id=1, gender=1,
 
     # run loop model to generate output features
     # print(ident_override)
-    if ident_override:
-        loop_feat, attn = model([txt, spkr, gender], feat, ident_override=ident_override)
-    else:
-        loop_feat, attn = model([txt, spkr, gender], feat)
+    #if ident_override:
+    #    loop_feat, attn = model([txt, spkr], feat, ident_override=ident_override)
+    #else:
+    embedding_array = model.get_embeddings(feat, start=True)
+    print(feat.size())
+    print(feat.permute(0,1,2).size())
+    loop_feat, attn, ident_u = model([txt, spkr], feat.permute(0,1,2), embedding_array=embedding_array)
 
     loop_feat, attn = trim_pred(loop_feat, attn)
 

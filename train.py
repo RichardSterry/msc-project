@@ -79,6 +79,7 @@ parser.add_argument('--mem-size', type=int, default=20,
 args = parser.parse_args()
 args.expNameRaw = args.expName
 args.expName = os.path.join('checkpoints', args.expName)
+args.embedding_size = args.hidden_size
 torch.cuda.set_device(args.gpu)
 torch.manual_seed(args.seed)
 torch.cuda.manual_seed(args.seed)
@@ -125,7 +126,10 @@ def train(model, criterion, optimizer, epoch, train_losses):
                 optimizer.zero_grad()
 
             # Forward
-            output, _ = model([input, spkr], target[0], start)
+            #output, _, _ = model([input, spkr], target[0], start)
+            # do we want to build a single utterance embedding per full_feat, rather than one per 100-seq feat? (even if state
+            # is preserved through the iterations?)
+            output, _, _ = model([input, spkr], target[0], start=start, full_feat=wrap(full_feat[0]))
             loss = criterion(output, target[0], target[1])
 
             # Backward
@@ -166,7 +170,7 @@ def evaluate(model, criterion, epoch, eval_losses):
         target = wrap(feat, volatile=True)
         spkr = wrap(spkr, volatile=True)
 
-        output, _ = model([input, spkr], target[0])
+        output, _, _ = model([input, spkr], target[0])
         loss = criterion(output, target[0], target[1])
 
         total += loss.data[0]

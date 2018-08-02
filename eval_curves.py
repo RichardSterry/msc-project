@@ -184,7 +184,7 @@ def evaluate(model, criterion, epoch, loader, speaker_recog=None,
         spkr = wrap(spkr, volatile=True)
 
         # loop forward pass
-        output, _ = model([input, spkr], target[0])
+        output, _, _ = model([input, spkr], target[0])
 
         # loss calculation
         if 'loss' in metrics:

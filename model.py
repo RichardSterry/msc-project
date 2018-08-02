@@ -10,6 +10,9 @@ from torch.autograd import Variable
 from torch.nn.utils.rnn import pad_packed_sequence as unpack
 from torch.nn.utils.rnn import pack_padded_sequence as pack
 
+from embedding_encoder import ConvEmbeddingEncoder
+from layers import ConcreteDropoutLayer, Conv1d
+
 
 def getLinear(dim_in, dim_out):
     return nn.Sequential(nn.Linear(dim_in, dim_in/10),
@@ -58,7 +61,7 @@ class Encoder(nn.Module):
                                   self.hidden_size,
                                   max_norm=1.0)
 
-    def forward(self, input, speakers):
+    def forward(self, input, ident, speakers):
         if isinstance(input, tuple):
             lengths = input[1].data.view(-1).tolist()
             outputs = pack(self.lut_p(input[0]), lengths)
@@ -67,7 +70,7 @@ class Encoder(nn.Module):
         if isinstance(input, tuple):
             outputs = unpack(outputs)[0]
 
-        ident = self.lut_s(speakers)
+        #ident = self.lut_s(speakers)
         if ident.dim() == 3:
             ident = ident.squeeze(1)
 
@@ -186,9 +189,11 @@ class Decoder(nn.Module):
 
         for o_tm1 in torch.split(x, 1):
             if not self.training:
-                o_tm1 = o_t.unsqueeze(0)
+                #eps = o_t.new(o_t.size()).normal_(0, 0.5) # TODO: is the eps needed?
+                o_tm1 = o_t.unsqueeze(0)# + eps
 
             # predict weighted context based on S
+            # TODO: uses checkpoint during training/
             c_t, mu_t, alpha_t = self.attn(self.S_t,
                                            context.transpose(0, 1),
                                            self.mu_t)
@@ -218,6 +223,7 @@ class Loop(nn.Module):
         self.decoder = Decoder(opt)
         self.noise = opt.noise
         self.output_size = opt.output_size
+        self.embedding_encoder = ConvEmbeddingEncoder(opt)
 
     def init_input(self, tgt, start):
         if start:
@@ -242,10 +248,21 @@ class Loop(nn.Module):
         nn.Module.cuda(self, device_id)
         self.decoder.attn.J = self.decoder.attn.J.cuda(device_id)
 
-    def forward(self, src, tgt, start=True):
+    def get_embeddings(self, tgt, start=True, embedding_array=None):
+        return self.embedding_encoder(tgt, start)
+
+    def forward(self, src, tgt, start=True, embedding_array=None, full_feat=None):
         x = self.init_input(tgt, start)
 
-        context, ident = self.encoder(src[0], src[1])
+        if self.training:
+            if full_feat is not None:
+                ident_u = self.embedding_encoder(full_feat, start)
+            else:
+                ident_u = self.embedding_encoder(tgt, start)
+        else:
+            ident_u = embedding_array# self.embedding_encoder(embedding_array, True)
+
+        context, ident = self.encoder(src[0], ident_u, src[1])
         out, attn = self.decoder(x, ident, context, start)
 
-        return out, attn
+        return out, attn, ident_u
