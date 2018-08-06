@@ -396,6 +396,7 @@ def generate_sample_with_loop(npz='', text='', spkr_id=1, gender=1,
                               checkpoint='models/vctk-16khz-cmu-no-boundaries-all/bestmodel.pth',
                               output_dir='./',
                               npz_path='/home/ubuntu/loop/data/vctk-16khz-cmu-no-boundaries-all/numpy_features',
+                              is_vctk_22=False,
                               output_file_override=None,
                               embedding_array=None):
     # npz = ''
@@ -420,14 +421,20 @@ def generate_sample_with_loop(npz='', text='', spkr_id=1, gender=1,
     opt = torch.load(os.path.dirname(checkpoint) + '/args.pth')
     train_args = opt[0]
 
-    #train_dataset = NpzFolder('/home/ubuntu/loop/data/vctk-16khz-cmu-no-boundaries-all/numpy_features')
-    train_dataset = NpzFolder('/home/ubuntu/loop/data/vctk/numpy_features')
+    if is_vctk_22:
+        train_dataset = NpzFolder('/home/ubuntu/loop/data/vctk/numpy_features')
+    else:
+        train_dataset = NpzFolder('/home/ubuntu/loop/data/vctk-16khz-cmu-no-boundaries-all/numpy_features')
+    #train_dataset = NpzFolder('/home/ubuntu/loop/data/vctk/numpy_features')
     char2code = train_dataset.dict
     spkr2code = train_dataset.speakers
     # print spkr2code.cpu().data
 
-    norm_path = train_args.data + '/norm_info/norm.dat'
-    #norm_path = '/home/ubuntu/loop/data/vctk-16khz-cmu-no-boundaries-all/norm_info/norm.dat'
+    if is_vctk_22:
+        norm_path = train_args.data + '/norm_info/norm.dat'
+        #norm_path = '/home/ubuntu/loop/data/vctk-16khz-cmu-no-boundaries-all/norm_info/norm.dat'
+    else:
+        norm_path = '/home/ubuntu/loop/data/vctk-16khz-cmu-no-boundaries-all/norm_info/norm.dat'
     train_args.noise = 0
 
     valid_dataset_path = npz_path + '_valid'
@@ -454,7 +461,7 @@ def generate_sample_with_loop(npz='', text='', spkr_id=1, gender=1,
     if npz is not '':
         # use pre-calculated phonemes etc.
         txt, feat, pre_calc_feat = npy_loader_phonemes(os.path.join(npz_path, npz))
-
+        #print(txt)
         txt = Variable(txt.unsqueeze(1), volatile=True)
         feat = Variable(feat.unsqueeze(1), volatile=True)
         spkr = Variable(torch.LongTensor([spkr_id]), volatile=True)
@@ -473,6 +480,7 @@ def generate_sample_with_loop(npz='', text='', spkr_id=1, gender=1,
         txt = text2phone(text, char2code)
         #feat = torch.FloatTensor(txt.size(0) * 20, 63)
         #spkr = torch.LongTensor([spkr_id])
+        #print(txt)
 
         txt = Variable(txt.unsqueeze(1), volatile=True)
         #feat = Variable(feat.unsqueeze(1), volatile=True)

@@ -100,7 +100,7 @@ class NpzFolder(data.Dataset):
         path = self.npzs[index]
         txt, feat, spkr = self.loader(path)
 
-        return txt, feat, self.speakers[spkr]
+        return txt, feat, self.speakers[spkr]#, path
 
     def __len__(self):
         return len(self.npzs)
@@ -127,7 +127,22 @@ class NpzFolder(data.Dataset):
 
         spkr = os.path.basename(path).split('_')[0]
 
-        return txt, audio, spkr
+        # add a dict for transcript, sentence id etc. to help with debugging
+        # _, fname = os.path.split(path)
+        # spkr_vctk, idx_sentence = fname[:-4].split('_')
+        #
+        # vctk_corpus_root = '/home/ubuntu/VCTK-Corpus/'
+        # txt_file = os.path.join(vctk_corpus_root, 'txt', spkr_vctk, fname[:-4] + '.txt')
+        # f = open(txt_file, 'r')
+        # transcript = f.read()
+        # f.close()
+        #
+        # sample_dict = dict()
+        # sample_dict['npz_file'] = path
+        # sample_dict['transcript'] = transcript
+        # sample_dict['idx_sentence'] = int(idx_sentence)
+
+        return txt, audio, spkr#, spkr
 
 
 class NpzLoader(data.DataLoader):

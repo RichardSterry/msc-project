@@ -72,6 +72,8 @@ parser.add_argument('--nspk', type=int, default=22,
 parser.add_argument('--mem-size', type=int, default=20,
                     help='Memory number of segments')
 
+parser.add_argument('--checkpoint-utterance-embeddings', default='',
+                    metavar='C', type=str, help='Checkpoint path for utterance embeddings')
 
 
 
@@ -200,7 +202,15 @@ def main():
         checkpoint_args = torch.load(checkpoint_args_path)
 
         start_epoch = checkpoint_args[3]
-        model.load_state_dict(torch.load(args.checkpoint, map_location=lambda storage, loc: storage))
+        cp = torch.load(args.checkpoint, map_location=lambda storage, loc: storage)
+
+        if not 'embedding_encoder.conv.2.conv.weight_g' in cp:
+            tmp = torch.load(args.checkpoint_utterance_embeddings, map_location=lambda storage, loc: storage)
+            d = set(tmp.keys()) - set(cp.keys())
+            for x in list(d):
+                cp[x] = tmp[x]
+
+        model.load_state_dict(cp)
 
     criterion = MaskedMSE().cuda()
     optimizer = optim.Adam(model.parameters(), lr=args.lr)

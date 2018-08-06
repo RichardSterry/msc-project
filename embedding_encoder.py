@@ -81,13 +81,14 @@ class ConvEmbeddingEncoder(nn.Module):
         out.contiguous()
 
         # Randomize input
-        out = F.pad(out, (20, 0, 0, 0), mode='replicate')
-        rnd = np.random.randint(20)
+        ##out = F.pad(out, (20, 0, 0, 0), mode='replicate')
+        ##rnd = np.random.randint(20)
         #lengths = lengths + (20 - rnd)
-        out = out[:, :, :, rnd:]
+        ##out = out[:, :, :, rnd:]
 
         # [B, C, H, T]
         for i, conv in enumerate(self.conv):
+            #if self.training:
             out = self.dropout[i](out)
             out = conv(out)
 
@@ -124,9 +125,12 @@ class ConvEmbeddingEncoder(nn.Module):
 
         # [T, B, C] -> [B, C]
         time_norm = 'mean'
+        #time_norm = 'max' # !!! just testing !!!
         if time_norm == 'mean':
             # out = torch.sum(out*mask_.float(), dim=0) / mask_.float().sum(0)
             out = torch.mean(out, dim=0)
+        elif time_norm == 'max':
+            out = torch.max(out, dim=0)[0]
         elif time_norm == 'last':
             out = out[-1, :, :]
 
