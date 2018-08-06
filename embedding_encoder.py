@@ -15,7 +15,7 @@ from torch.autograd import Variable
 
 from layers import ConcreteDropoutLayer, Conv2d
 
-
+#test commit
 class ConvEmbeddingEncoder(nn.Module):
     def __init__(self, opt):
         super(ConvEmbeddingEncoder, self).__init__()
