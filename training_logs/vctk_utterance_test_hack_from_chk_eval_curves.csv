@@ -1,0 +1,2 @@
+epoch,update_time,train_loss,valid_loss,mcd,speaker_recognition_acc_eval
+1,1533553206.24,32.7474456675,33.0545488245,,0.939961575408
