@@ -10,12 +10,4 @@ Original | <audio src="vctk/samples/p255_367.wav" controls></audio>
 
 #<img src="vctk/vctk_descriptive_age_etc.png" width="1400" />
 
-<script>
-  CsvToHtmlTable.init({
-    csv_path: 'data/Health Clinics in Chicago.csv', 
-    element: 'table-container', 
-    allow_download: true,
-    csv_options: {separator: ',', delimiter: '"'},
-    datatables_options: {"paging": false}
-  });
-</script>
+<iframe style="border-style: none;" src="http://richardsterry.github.io/msc-project/my_table.html" height="950" width="600"></iframe>
