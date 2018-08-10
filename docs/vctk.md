@@ -10,9 +10,6 @@ Original | <audio src="vctk/samples/p255_367.wav" controls></audio>
 
 #<img src="vctk/vctk_descriptive_age_etc.png" width="1400" />
 
-<html>
-<head><title>Reading values into a table</title></head>
-<body>
 
 <table datasrc='#data'>
   
@@ -35,5 +32,3 @@ Original | <audio src="vctk/samples/p255_367.wav" controls></audio>
   <param nAme="UseHeader" value="true">
 </object>
 
-</body>
-</html>
