@@ -4,3 +4,4 @@
 * [VCTK Dataset](vctk.md)
 * [Fader Networks](fader_networks.md)
 
+* [Fader Networks](index.html)
