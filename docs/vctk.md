@@ -9,7 +9,7 @@
 [VCTK Speaker List](vctk_speaker_metadata_csv.html)
 ![lf0](vctk/vctk_descriptive_age_etc.png)
 <html>
-<iframe style="border-style: none;" src="vctk_speaker_metadata_csv.html" height="800" width="600"></iframe>
+<iframe style="border-style: none;" src="vctk_speaker_metadata_csv.html" height="400" width="600"></iframe>
 </html>
 
 ## Transcripts
