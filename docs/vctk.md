@@ -19,11 +19,11 @@ Original | <audio src="vctk/samples/p255_367.wav" controls></audio>
  | --- | --- | --- | --- | --- |
  | 253 | 22 | F | Welsh | Cardiff |
 
-![waveform](vctk/wavplot_255_367.png)
-![spectrogram](vctk/wavplot_255_367_spectro.png)
+![waveform](vctk/samples/wavplot_255_367.png)
+![spectrogram](vctk/samples/wavplot_255_367_spectro.png)
 
 
 # can I make this 'safer'?
 <html>
-<iframe style="border-style: none;" src="http://richardsterry.github.io/msc-project/my_table.html" height="950" width="600"></iframe>
+<iframe style="border-style: none;" src="vctk_transcript_csv.html" height="950" width="600"></iframe>
 </html>
