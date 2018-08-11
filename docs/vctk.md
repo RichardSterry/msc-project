@@ -8,7 +8,7 @@
 
 | id_vctk | age | gender | accents | region | audio | transcript | 
 | --- | --- | --- | --- | --- | --- | --- |
-| 253 | (22/F/Welsh/Cardiff) | Anything is possible in football and we can beat Celtic again. | <audio src="vctk/samples/p255_367.wav" controls></audio>  |
+| 253 | 22 | F | Welsh | Cardiff | Anything is possible in football and we can beat Celtic again. | <audio src="vctk/samples/p255_367.wav" controls></audio>  |
 | 314 | 26 | F | SouthAfrican | Cape Town | That was a bonus, but it was not the main objective. | <audio src="vctk/samples/p314_272.wav" controls></audio>  |
 | 317 | 23 | F | Canadian | Hamilton | That is a lot of writing. | <audio src="vctk/samples/p317_166.wav" controls></audio>  |
 | 238 | 22 | F | NorthernIrish | Belfast | The arrangement will avoid any conflicts of interest. | <audio src="vctk/samples/p238_165.wav" controls></audio>  |
