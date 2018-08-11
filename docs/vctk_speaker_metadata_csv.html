@@ -25,7 +25,7 @@
 
       <h2>VCTK Speaker Metadata</h2>
 
-      <p>Add link to VCTK site <a href='https://data.cityofchicago.org/browse?q=health%20clinic&sortBy=relevance&utf8=%E2%9C%93'>City of Chicago Data Portal</a>.</p>
+      <p> <a href='vctk_speaker_metadata_csv.html'>As Separate Page</a>.</p>
 
       <div id='table-container'></div>
 
@@ -59,7 +59,7 @@
       CsvToHtmlTable.init({
         csv_path: 'vctk/vctk_meta_data',
         element: 'table-container',
-        allow_download: true,
+        allow_download: false,
         csv_options: {separator: ',', delimiter: '"'},
         datatables_options: {"paging": false},
         custom_formatting: [[4, format_link]]
