@@ -1,5 +1,6 @@
-# Gender Fader for VoiceLoop on VCTK 
-### using gender concat method
+# Disentanglement With Labels: Fader Networks
+### Gender Fader for VoiceLoop on VCTK-All-107 
+using gender concat method
 
 * [p272 (Scottish Male)](fader_gender_p272.md)
 * [p231 (English Female)](fader_gender_p231.md)
