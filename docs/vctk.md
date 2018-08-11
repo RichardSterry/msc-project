@@ -10,6 +10,10 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | 253 | 22 | F | Welsh | Cardiff | <audio src="vctk/samples/p255_367.wav" controls></audio>  | "She went with him to the store" |
 
+| speaker | transcript | audio | 
+| --- | --- | --- | 
+| 253 (22/F/Welsh/Cardiff) | "She went with him to the store" | <audio src="vctk/samples/p255_367.wav" controls></audio>  |
+
 
 ![waveform](vctk/samples/wavplot_255_367.png)
 ![spectrogram](vctk/samples/wavplot_255_367_spectro.png)
