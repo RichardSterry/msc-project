@@ -12,7 +12,7 @@
 
 | speaker | transcript | audio | 
 | --- | --- | --- | 
-| 253 (22/F/Welsh/Cardiff) | "She went with him to the store" | <audio src="vctk/samples/p255_367.wav" controls></audio>  |
+| 253 (22/F/Welsh/Cardiff) | Anything is possible in football and we can beat Celtic again. | <audio src="vctk/samples/p255_367.wav" controls></audio>  |
 
 
 ![waveform](vctk/samples/wavplot_255_367.png)
@@ -27,6 +27,7 @@
 </html>
 
 ## Transcripts
+[VCTK Transcripts](vctk/vctk_transcripts_all)
 [VCTK Transcripts](vctk_transcript_csv.html)
 <html>
 <iframe style="border-style: none;" src="vctk_transcript_csv.html" height="700" width="800"></iframe>
