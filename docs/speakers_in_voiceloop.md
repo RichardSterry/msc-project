@@ -15,15 +15,17 @@
 
 ## Gender Transformation
 ![wavform](ppt/baseline_speakers_pca_gender_transformation.png)
+
 Speaker 39: Irish Female
 "How trying to stay cool could make the world even hotter."
-<audio src="ppt/baseline_gender_tranform_39_base.wav" controls>Speaker 39</audio>
-<audio src="ppt/baseline_gender_tranform_39.wav" controls>+female->male transformation</audio>
-<audio src="ppt/baseline_gender_tranform_39_x2.wav" controls>+2x female->male transformation</audio>
+Speaker 39<audio src="ppt/baseline_gender_tranform_39_base.wav" controls></audio>
++female->male transformation<audio src="ppt/baseline_gender_tranform_39.wav" controls></audio>
++2x female->male transformation<audio src="ppt/baseline_gender_tranform_39_x2.wav" controls></audio>
 
 # Accent Transformation
 Speaker 34: English Female
+
 "More than two million player ratings were awarded by users."
-<audio src="ppt/baseline_accent_transform_34_base.wav" controls>Speaker 34</audio>
-<audio src="ppt/baseline_accent_transform_34.wav" controls>+English->American transformation</audio>
+Speaker 34<audio src="ppt/baseline_accent_transform_34_base.wav" controls></audio>
++English->American transformation<audio src="ppt/baseline_accent_transform_34.wav" controls></audio>
 
