@@ -8,6 +8,9 @@
 ## Speakers
 [VCTK Speaker List](vctk_speaker_metadata_csv.html)
 ![lf0](vctk/vctk_descriptive_age_etc.png)
+<html>
+<iframe style="border-style: none;" src="vctk_transcript_csv.html" height="800" width="600"></iframe>
+</html>
 
 ## Transcripts
 [VCTK Transcripts](vctk_transcript_csv.html)
@@ -25,5 +28,5 @@ Original | <audio src="vctk/samples/p255_367.wav" controls></audio>
 
 # can I make this 'safer'?
 <html>
-<iframe style="border-style: none;" src="vctk_transcript_csv.html" height="950" width="600"></iframe>
+<iframe style="border-style: none;" src="vctk_transcript_csv.html" height="950" width="800"></iframe>
 </html>
