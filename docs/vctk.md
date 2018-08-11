@@ -1,5 +1,5 @@
 # The VCTK Dataset
-
+* [CSTR VCTK Website](https://homepages.inf.ed.ac.uk/jyamagis/page3/page58/page58.html)
 * Samples of <transcript, audio> data
 * Speaker metadata
  
@@ -29,6 +29,8 @@
 ![spectrogram](vctk/samples/wavplot_255_367_spectro.png)
 
 ## Speakers
+Speakers by attribute.
+
 ![lf0](vctk/vctk_descriptive_age_etc.png)
 
 [VCTK Speaker List](vctk_speaker_metadata_csv.html)
@@ -41,7 +43,7 @@
 
 [VCTK Transcripts](vctk_transcript_csv.html)
 
-<a href="/" target="vctk/vctk_transcripts_all">The home page will open in another tab.</a>
+<a href="/" target="index.md">The home page will open in another tab.</a>
 
 <html>
 <iframe style="border-style: none;" src="vctk_transcript_csv.html" height="700" width="800"></iframe>
