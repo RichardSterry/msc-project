@@ -3,8 +3,9 @@
 * Samples of <transcript, audio> data
 * Speaker metadata
  
- ## Examples: <transcript, speaker, audio>
-<audio src="vctk/samples/p255_367.wav" controls></audio> 
+ ## Examples from the Datset
+ * 40k examples across 108 speakers
+ * Each example is of the form: <speaker, transcript, audio>
 
 | id_vctk | age | gender | accents | region | audio | transcript | 
 | --- | --- | --- | --- | --- | --- | --- |
@@ -41,10 +42,11 @@ Speakers by attribute.
 ## Transcripts
 [VCTK Transcripts](vctk/vctk_transcripts_all)
 
-[VCTK Transcripts](vctk_transcript_csv.html)
 
-<a href="/" target="index.md">The home page will open in another tab.</a>
 
+<a href="/" target="index.md">Back to home page</a>
+
+Example: [VCTK Transcripts for Speaker 225](vctk_transcript_csv.html)
 <html>
 <iframe style="border-style: none;" src="vctk_transcript_csv.html" height="700" width="800"></iframe>
 </html>
