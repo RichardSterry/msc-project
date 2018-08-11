@@ -28,7 +28,11 @@
 
 ## Transcripts
 [VCTK Transcripts](vctk/vctk_transcripts_all)
+
 [VCTK Transcripts](vctk_transcript_csv.html)
+
+<a href="/" target="vctk/vctk_transcripts_all">The home page will open in another tab.</a>
+
 <html>
 <iframe style="border-style: none;" src="vctk_transcript_csv.html" height="700" width="800"></iframe>
 </html>
