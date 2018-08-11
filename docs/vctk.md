@@ -42,9 +42,7 @@ Speakers by attribute.
 ## Transcripts
 [VCTK Transcripts](vctk/vctk_transcripts_all)
 
-
-
-<a href="/" target="index.md">Back to home page</a>
+<a href="index.md" target="_blank">Back to home page</a>
 
 Example: [VCTK Transcripts for Speaker 225](vctk_transcript_csv.html)
 <html>
