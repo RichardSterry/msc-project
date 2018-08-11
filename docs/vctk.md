@@ -2,31 +2,27 @@
 
 * Samples of <transcript, audio> data
 * Speaker metadata
-
  
+ ## Examples: <transcript, speaker, audio>
+<audio src="vctk/samples/p255_367.wav" controls></audio> 
+
+| id_vctk | age | gender | accents | region | audio | transcript | 
+ | --- | --- | --- | --- | --- | --- | --- |
+ | 253 | 22 | F | Welsh | Cardiff | <audio src="vctk/samples/p255_367.wav" controls></audio>  | "She went with him to the store" |
+<
+![waveform](vctk/samples/wavplot_255_367.png)
+![spectrogram](vctk/samples/wavplot_255_367_spectro.png)
 
 ## Speakers
-[VCTK Speaker List](vctk_speaker_metadata_csv.html)
 ![lf0](vctk/vctk_descriptive_age_etc.png)
+
+[VCTK Speaker List](vctk_speaker_metadata_csv.html)
 <html>
 <iframe style="border-style: none;" src="vctk_speaker_metadata_csv.html" height="400" width="600"></iframe>
 </html>
 
 ## Transcripts
 [VCTK Transcripts](vctk_transcript_csv.html)
-
-## Examples: <transcript, speaker, audio>
-Original | <audio src="vctk/samples/p255_367.wav" controls></audio> 
-
-| id_vctk | age | gender | accents | region | 
- | --- | --- | --- | --- | --- |
- | 253 | 22 | F | Welsh | Cardiff |
-
-![waveform](vctk/samples/wavplot_255_367.png)
-![spectrogram](vctk/samples/wavplot_255_367_spectro.png)
-
-
-# can I make this 'safer'?
 <html>
 <iframe style="border-style: none;" src="vctk_transcript_csv.html" height="950" width="800"></iframe>
 </html>
