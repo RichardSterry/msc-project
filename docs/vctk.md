@@ -7,9 +7,10 @@
 <audio src="vctk/samples/p255_367.wav" controls></audio> 
 
 | id_vctk | age | gender | accents | region | audio | transcript | 
- | --- | --- | --- | --- | --- | --- | --- |
- | 253 | 22 | F | Welsh | Cardiff | <audio src="vctk/samples/p255_367.wav" controls></audio>  | "She went with him to the store" |
-<
+| --- | --- | --- | --- | --- | --- | --- |
+| 253 | 22 | F | Welsh | Cardiff | <audio src="vctk/samples/p255_367.wav" controls></audio>  | "She went with him to the store" |
+
+
 ![waveform](vctk/samples/wavplot_255_367.png)
 ![spectrogram](vctk/samples/wavplot_255_367_spectro.png)
 
@@ -24,5 +25,5 @@
 ## Transcripts
 [VCTK Transcripts](vctk_transcript_csv.html)
 <html>
-<iframe style="border-style: none;" src="vctk_transcript_csv.html" height="950" width="800"></iframe>
+<iframe style="border-style: none;" src="vctk_transcript_csv.html" height="700" width="800"></iframe>
 </html>
