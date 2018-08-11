@@ -2,7 +2,7 @@
 * [CSTR VCTK Website](https://homepages.inf.ed.ac.uk/jyamagis/page3/page58/page58.html)
 * Samples of <transcript, audio> data
 * Speaker metadata
- 
+
  ## Examples from the Datset
  * 40k examples across 108 speakers
  * Each example is of the form: <speaker, transcript, audio>
