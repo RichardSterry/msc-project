@@ -13,6 +13,14 @@
 | speaker | transcript | audio | 
 | --- | --- | --- | 
 | 253 (22/F/Welsh/Cardiff) | Anything is possible in football and we can beat Celtic again. | <audio src="vctk/samples/p255_367.wav" controls></audio>  |
+| 314 (26/F/SouthAfrican/Cape Town) | Ahat was a bonus, but it was not the main objective. | <audio src="vctk/samples/p314_272.wav" controls></audio>  |
+| 317 (23/F/Canadian/Hamilton) | That is a lot of writing.
+ | <audio src="vctk/samples/p317_166.wav" controls></audio>  |
+| 238 (22/F/NorthernIrish/Belfast) | The arrangement will avoid any conflicts of interest.
+ | <audio src="vctk/samples/p238_165.wav" controls></audio>  |
+| 376 (22/M/Indian) | The modern approach will also be reflected in the terms of address. | <audio src="vctk/samples/p376_193.wav" controls></audio>  |
+| 301 (23/F/American/North Carolina) | I am sure all schools would accept that.
+ | <audio src="vctk/samples/p301_102.wav" controls></audio>  |
 
 
 ![waveform](vctk/samples/wavplot_255_367.png)
