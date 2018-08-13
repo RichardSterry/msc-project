@@ -1,5 +1,8 @@
 # Samples from Baseline Model VCTK_All_107
 
+"The achievement was to have raised himself up, from very modest origins, in a tiny society of fiercely limited opportunity"
+https://www.newyorker.com/books/page-turner/the-shattering-double-vision-of-v-s-naipaul
+
 
 | Stella (Original) | Random (Original) | VCTK id | <font color="red">MJ (VoiceLoop)</font> | <font color="red">Achievement (VoiceLoop)</font> | 
 | --- | --- | --- | --- | --- |
