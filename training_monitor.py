@@ -109,6 +109,8 @@ class TrainingMonitor(object):
         if not ax:
             plt.show()
 
+
+
     def plot_mcd(self, ax=None):
         if ax:
             plt.sca(ax)
@@ -139,12 +141,14 @@ class TrainingMonitor(object):
         if not ax:
             plt.show()
 
-    def plot(self, figsize=(16,6)):
+    def plot(self, figsize=(16,6), fname=None):
         f, ax = plt.subplots(1, 3, figsize=figsize)
         self.plot_loss(ax[0])
         self.plot_mcd(ax[1])
         self.plot_speaker_recognition(ax[2])
         plt.suptitle(self.exp_name)
+        if fname:
+            plt.savefig(fname)
         plt.show()
 
     def combine(self, other, new_exp_name):

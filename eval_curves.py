@@ -409,6 +409,46 @@ if __name__ == '__main__':
                      data='/home/ubuntu/loop/data/vctk-16khz-cmu-no-boundaries-all',
                      speaker_recognition_checkpoint='checkpoints/speaker_recognition_vctk_all/bestmodel.pth',
                      speaker_recognition_exp_name='notebook_test',
+                     exp_name='vctk_all_20180813_write_up_teachT_noiseF',
+                     max_seq_len=1000,
+                     nspk=107,
+                     gpu=0,
+                     batch_size=64,
+                     seed=1,
+                     eval_epochs=10,
+                     b_teacher_force=True,
+                     b_use_train_noise=False,
+                     start_epoch=1,
+                     end_epoch=90,
+                     step_epoch=1
+                     )
+
+    calc_eval_curves(checkpoint_folder='checkpoints/vctk-all-2-v2',
+                     data='/home/ubuntu/loop/data/vctk-16khz-cmu-no-boundaries-all',
+                     speaker_recognition_checkpoint='checkpoints/speaker_recognition_vctk_all/bestmodel.pth',
+                     speaker_recognition_exp_name='notebook_test',
+                     exp_name='vctk_all_2_v2_20180813_write_up_teachT_noiseF',
+                     max_seq_len=1000,
+                     nspk=107,
+                     gpu=0,
+                     batch_size=64,
+                     seed=1,
+                     eval_epochs=10,
+                     b_teacher_force=True,
+                     b_use_train_noise=False,
+                     start_epoch=90,
+                     end_epoch=163,
+                     step_epoch=1
+                     )
+
+
+def old_run():
+    # 13-Aug-18: This was the code that was previously in main
+    # back from when I ran a bunch of tests in the past
+    calc_eval_curves(checkpoint_folder='checkpoints/vctk-all',
+                     data='/home/ubuntu/loop/data/vctk-16khz-cmu-no-boundaries-all',
+                     speaker_recognition_checkpoint='checkpoints/speaker_recognition_vctk_all/bestmodel.pth',
+                     speaker_recognition_exp_name='notebook_test',
                      exp_name='vctk_all_20180716_teachT_noiseT',
                      max_seq_len=1000,
                      nspk=107,
