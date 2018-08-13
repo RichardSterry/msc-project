@@ -2,7 +2,7 @@
 
 <font color="red">This is some text!</font>
 
-| Stella (Original) | Random (Original) | VCTK id | <font color="red">Stella (VoiceLoop)</cont> | <font color="red">MJ (VoiceLoop)</font> | 
+| Stella (Original) | Random (Original) | VCTK id | <font color="red">Stella (VoiceLoop)</font> | <font color="red">MJ (VoiceLoop)</font> | 
 | --- | --- | --- | --- | --- |
 | <audio src="master/world_features_exploration/p294_001.orig.wav" controls></audio> | <audio src="master/world_features_exploration/p294_198.orig.wav" controls></audio> | **294** | <audio src="master/world_features_exploration/p294_001_0.wav" controls></audio> | <audio src="master/world_features_exploration/p330_230_0.wav" controls></audio> | 
  | <audio src="master/world_features_exploration/p297_001.orig.wav" controls></audio> | <audio src="master/world_features_exploration/p297_198.orig.wav" controls></audio> | **297** | <audio src="master/world_features_exploration/p297_001_1.wav" controls></audio> | <audio src="master/world_features_exploration/p330_230_1.wav" controls></audio> | 
