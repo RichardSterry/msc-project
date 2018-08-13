@@ -13,6 +13,11 @@
 ![spectrogram](vctk/samples/wavplot_301_102_spectro.png)
 ![world feats](vctk/world_feats/world_feats_301_117.png)
 
+## WORLD Feature Hack
+![lf0_hack](master/world_features_exploration/michael_johnson_hack_main_feats.png)
+<audio src="master/world_features_exploration/michael_johnson_lf0__hack.wav" controls></audio>
+
+
 ## VoiceLoop Synthesized Speech
 ### Speaker 339: F/21/American/Pennsylvania
 "There are exciting days ahead."
