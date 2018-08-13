@@ -3,6 +3,7 @@
 * Sample synthesized speech from the two baseline models: VCTK-US-22 and VCTK-All-107
 * Training curves?
 
+[VCTK US_22 Samples](vctk_us_22_samples.md)
 
 ## WORLD Features
 ![wavform](vctk/samples/wavplot_301_102.png)
