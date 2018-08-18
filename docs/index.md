@@ -20,7 +20,7 @@ cite paper and link to GitHub
 * Examples of voice interpolation
 * Maybe roll this into the previous section? Or keep separate to match the report?
 
-## [Utterance Embeddings](utterance_embeddings_us.md)
+## [Utterance Embeddings](utterance_embeddings.md)
 * Adapting the VoiceLoop architecuture to embed reference utterance rather than speaker IDs
 
 ## [Disentanglement With Labels: Fader Networks](fader_networks.md)
