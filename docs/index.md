@@ -23,7 +23,7 @@ cite paper and link to GitHub
 ## [Disentanglement With Labels: Fader Networks](fader_networks.md)
 * Samples of speech to show the impact of 'fading' between gender lables
 
-## [Disentanglement Without Labels: BetaVAE](betavae.md)
+## [Disentanglement Without Labels: BetaVAE](vae_random_sample.md)
 * Utterance embeddings: taking speaker labels away
 * Basic VAE
 * Does BetaVAE help disentangle the generative attributes?
