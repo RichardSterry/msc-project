@@ -74,14 +74,20 @@ parser.add_argument('--mem-size', type=int, default=20,
 
 parser.add_argument('--checkpoint-utterance-embeddings', default='',
                     metavar='C', type=str, help='Checkpoint path for utterance embeddings')
-
-
+parser.add_argument('--kld-lambda', type=float, default=1.,
+                    help='Final weight to KLD loss component')
+parser.add_argument('--kld-annealing-epochs', type=int, default=1,
+                    help='KLD weight linearly rises to lambda over # epochs')
+parser.add_argument('--kld-annealing-initial-epochs', type=int, default=0,
+                    help='# epochs before KLD annealing begins (i.e. where lambda to KLD loss is zero')
+parser.add_argument('--embedding-size', type=int, default=256,
+                    help='Speaker embedding layer size')
 
 # init
 args = parser.parse_args()
 args.expNameRaw = args.expName
 args.expName = os.path.join('checkpoints', args.expName)
-args.embedding_size = args.hidden_size
+#args.embedding_size = args.hidden_size
 torch.cuda.set_device(args.gpu)
 torch.manual_seed(args.seed)
 torch.cuda.manual_seed(args.seed)
@@ -109,14 +115,34 @@ valid_loader = NpzLoader(valid_dataset,
 logging.info("Dataset ready!")
 
 
+def get_kld_lambda(epoch):
+    if epoch > args.kld_annealing_initial_epochs:
+        if args.kld_annealing_epochs == 1:
+            kld_lambda = args.kld_lambda
+        else:
+            kld_lambda = min(1.0, 1.0 * (epoch - args.kld_annealing_initial_epochs - 1) / (args.kld_annealing_epochs - 1)) * args.kld_lambda
+    else:
+        # in initial epochs, ignore KLD term
+        kld_lambda = 0.
+
+    return kld_lambda
+
+
 def train(model, criterion, optimizer, epoch, train_losses):
+    total_mse = 0
+    total_kld = 0
     total = 0   # Reset every plot_every
     model.train()
     train_enum = tqdm(train_loader, desc='Train epoch %d' % epoch)
 
+    kld_lambda = get_kld_lambda(epoch)
+
     for full_txt, full_feat, spkr in train_enum:
         batch_iter = TBPTTIter(full_txt, full_feat, spkr, args.seq_len)
+        batch_total_mse = 0
+        batch_total_kld = 0
         batch_total = 0
+
 
         for txt, feat, spkr, start in batch_iter:
             input = wrap(txt)
@@ -131,8 +157,14 @@ def train(model, criterion, optimizer, epoch, train_losses):
             #output, _, _ = model([input, spkr], target[0], start)
             # do we want to build a single utterance embedding per full_feat, rather than one per 100-seq feat? (even if state
             # is preserved through the iterations?)
-            output, _, _ = model([input, spkr], target[0], start=start, full_feat=wrap(full_feat[0]))
-            loss = criterion(output, target[0], target[1])
+            output, _, _, ident_mu, ident_logvar = model([input, spkr], target[0], start=start, full_feat=wrap(full_feat[0]))
+            loss_mse = criterion(output, target[0], target[1])
+
+            #kld = -0.5 * torch.sum(1 + ident_logvar - ident_mu.pow(2) - ident_logvar.exp())
+            # 09-Aug: change to mean. Def should be mean over the batch; less sure about mean over dimensions
+            kld = -0.5 * torch.mean(1 + ident_logvar - ident_mu.pow(2) - ident_logvar.exp())
+
+            loss = loss_mse + kld_lambda * kld
 
             # Backward
             loss.backward()
@@ -143,14 +175,24 @@ def train(model, criterion, optimizer, epoch, train_losses):
             optimizer.step()
 
             # Keep track of loss
+            batch_total_mse += loss_mse.data[0]
+            batch_total_kld += kld.data[0]
             batch_total += loss.data[0]
 
+        batch_total_mse = batch_total_mse / len(batch_iter)
+        batch_total_kld = batch_total_kld / len(batch_iter)
         batch_total = batch_total/len(batch_iter)
-        total += batch_total
-        train_enum.set_description('Train (loss %.2f) epoch %d' %
-                                   (batch_total, epoch))
 
+        total_mse += batch_total_mse
+        total_kld += batch_total_kld
+        total += batch_total
+        train_enum.set_description('Train (loss %.2f, MSE %.2f, KLD %.2f) epoch %d' %
+                                   (batch_total, batch_total_mse, batch_total_kld, epoch))
+
+    avg_mse = total_mse / len(train_loader)
+    avg_kld = total_kld / len(train_loader)
     avg = total / len(train_loader)
+
     train_losses.append(avg)
     if args.visualize:
         vis.line(Y=np.asarray(train_losses),
@@ -160,11 +202,16 @@ def train(model, criterion, optimizer, epoch, train_losses):
 
     logging.info('====> Train set loss: {:.4f}'.format(avg))
 
-    return avg
+    return avg, avg_mse, avg_kld
 
 
 def evaluate(model, criterion, epoch, eval_losses):
+    total_mse = 0
+    total_kld = 0
     total = 0
+
+    kld_lambda = get_kld_lambda(epoch)
+
     valid_enum = tqdm(valid_loader, desc='Valid epoch %d' % epoch)
 
     for txt, feat, spkr in valid_enum:
@@ -172,14 +219,24 @@ def evaluate(model, criterion, epoch, eval_losses):
         target = wrap(feat, volatile=True)
         spkr = wrap(spkr, volatile=True)
 
-        output, _, _ = model([input, spkr], target[0])
-        loss = criterion(output, target[0], target[1])
+        output, _, _, ident_mu, ident_logvar = model([input, spkr], target[0])
 
+        loss_mse = criterion(output, target[0], target[1])
+
+        #kld = -0.5 * torch.sum(1 + ident_logvar - ident_mu.pow(2) - ident_logvar.exp())
+        kld = -0.5 * torch.mean(1 + ident_logvar - ident_mu.pow(2) - ident_logvar.exp())
+
+        loss = loss_mse + kld_lambda * kld
+
+        total_mse += loss_mse.data[0]
+        total_kld += kld.data[0]
         total += loss.data[0]
 
-        valid_enum.set_description('Valid (loss %.2f) epoch %d' %
-                                   (loss.data[0], epoch))
+        valid_enum.set_description('Valid (loss %.2f, MSE %.2f, KLD %.2f) epoch %d' %
+                                   (loss.data[0], loss_mse.data[0], kld.data[0], epoch))
 
+    avg_mse = total_mse / len(valid_loader)
+    avg_kld = total_kld / len(valid_loader)
     avg = total / len(valid_loader)
     eval_losses.append(avg)
     if args.visualize:
@@ -189,7 +246,7 @@ def evaluate(model, criterion, epoch, eval_losses):
                  win='Eval loss ' + args.expName)
 
     logging.info('====> Test set loss: {:.4f}'.format(avg))
-    return avg
+    return avg, avg_mse, avg_kld
 
 
 def main():
@@ -222,7 +279,9 @@ def main():
     training_monitor = TrainingMonitor(file=args.expNameRaw,
                                        exp_name=args.expNameRaw,
                                        b_append=True,
-                                       path='training_logs')
+                                       path='training_logs',
+                                       columns=('epoch', 'update_time', 'train_loss', 'train_loss_mse', 'train_loss_kld', 'valid_loss', 'valid_loss_mse', 'valid_loss_kld', 'mcd')
+                                       )
 
     # Begin!
     for epoch in range(start_epoch, start_epoch + args.epochs):
@@ -230,7 +289,7 @@ def main():
         train(model, criterion, optimizer, epoch, train_losses)
 
         # evaluate on validation set
-        eval_loss = evaluate(model, criterion, epoch, eval_losses)
+        eval_loss, eval_mse, eval_kld = evaluate(model, criterion, epoch, eval_losses)
 
         #chk, _, _, _ = ec.evaluate(model=model,
         #                                  criterion=criterion,
@@ -260,17 +319,21 @@ def main():
             train_eval_loader = ec.get_training_data_for_eval(data=args.data,
                                                                len_valid=len(valid_loader.dataset))
 
-            train_loss, _, _ ,_ = ec.evaluate(model=model,
+            kld_lambda = get_kld_lambda(epoch)
+
+            train_loss, train_loss_mse, train_loss_kld, _ ,_, _ = ec.evaluate(model=model,
                                                 criterion=criterion,
                                                 epoch=epoch,
                                                 loader=train_eval_loader,
-                                                metrics=('loss')
+                                                metrics=('loss'),
+                                                kld_lambda=kld_lambda
                                                 )
         else:
             train_loss = None
 
         # store loss metrics
-        training_monitor.insert(epoch=epoch, valid_loss=eval_loss, train_loss=train_loss)
+        training_monitor.insert(epoch=epoch, valid_loss=eval_loss, valid_loss_mse=eval_mse, valid_loss_kld=eval_kld,
+                                train_loss=train_loss, train_loss_mse=train_loss_mse, train_loss_kld=train_loss_kld)
         training_monitor.write()
 
 

@@ -137,11 +137,13 @@ def mse_manual(model_output, model_target, sequence_length):
 
 
 def evaluate(model, criterion, epoch, loader, speaker_recog=None,
-             metrics=None):
+             metrics=None, kld_lambda=1.):
 
     if not metrics:
         metrics = ('loss', 'mcd', 'loss_workings', 'speaker_recognition')
 
+    total_mse = 0
+    total_kld = 0
     total = 0
     my_total = 0
     loss = 0
@@ -183,12 +185,29 @@ def evaluate(model, criterion, epoch, loader, speaker_recog=None,
         target = wrap(feat, volatile=True)
         spkr = wrap(spkr, volatile=True)
 
-        # loop forward pass
-        output, _, _ = model([input, spkr], target[0])
+        # !!!!!!!! temporary hack !!!!!!!
+        # switch this back on when doing speaker recognition evaluation
+        if True:
+            tmp = target[0]#.permute(0, 2, 1)
+            ident_mu, ident_logvar = model.get_embeddings(tmp, start=True)
+            model.train()  # !!temp
+            embedding_array = model.reparameterize(ident_mu, ident_logvar)
+            model.eval()  # !!temp
+            output, _, _, ident_mu, ident_logvar = model([input, spkr], target[0], embedding_array=embedding_array)
+            model.train()
+        else:
+            # loop forward pass
+            output, _, _, ident_mu, ident_logvar = model([input, spkr], target[0])
 
         # loss calculation
         if 'loss' in metrics:
-            loss = criterion(output, target[0], target[1])
+            loss_mse = criterion(output, target[0], target[1])
+            #kld = -0.5 * torch.sum(1 + ident_logvar - ident_mu.pow(2) - ident_logvar.exp())
+            kld = -0.5 * torch.mean(1 + ident_logvar - ident_mu.pow(2) - ident_logvar.exp())
+            loss = loss_mse + kld_lambda * kld
+
+            total_mse += loss_mse.data[0]
+            total_kld += kld.data[0]
             total += loss.data[0]
 
         # speaker recognition on synth samples
@@ -254,6 +273,8 @@ def evaluate(model, criterion, epoch, loader, speaker_recog=None,
 
 
     # total loss across batch
+    loss_avg_mse = total_mse / len(loader)
+    loss_avg_kld = total_kld / len(loader)
     loss_avg = total / len(loader)
 
     # total speaker recognition accuracy across batch
@@ -289,7 +310,7 @@ def evaluate(model, criterion, epoch, loader, speaker_recog=None,
         y = [[(j, i) for i in range(x.shape[1])] for j, x in enumerate(all_output)]
         (loss_workings['idx_batch'], loss_workings['idx_pos_in_batch']) = zip(*[x for z in y for x in z])
 
-    return loss_avg, sr_accuracy, mcd_avg, loss_workings
+    return loss_avg, loss_avg_mse, loss_avg_kld, sr_accuracy, mcd_avg, loss_workings
 
 
 def calc_eval_curves(checkpoint_folder='models/vctk-all/',
@@ -370,14 +391,14 @@ def calc_eval_curves(checkpoint_folder='models/vctk-all/',
             this_epoch_metrics = None
         else:
             this_epoch_metrics = eval_metrics
-
-        valid_loss, valid_sr_accuracy, valid_mcd_avg, valid_loss_workings = evaluate(model, criterion=criterion, epoch=epoch,
+        #loss_avg, loss_avg_mse, loss_avg_kld, sr_accuracy, mcd_avg, loss_workings
+        valid_loss, loss_avg_mse, loss_avg_kld, valid_sr_accuracy, valid_mcd_avg, valid_loss_workings = evaluate(model, criterion=criterion, epoch=epoch,
                                                                                      loader=valid_loader, speaker_recog=speaker_recog,
                                                                                      metrics=this_epoch_metrics)
         save_loss_workings(exp_name, epoch, valid_loss_workings)
 
         train_eval_loader = get_training_data_for_eval(data=data, len_valid=len(valid_loader.dataset))
-        train_loss, train_sr_accuracy, train_mcd_avg, train_loss_workings = evaluate(model, criterion=criterion, epoch=epoch,
+        train_loss, loss_avg_mse, loss_avg_kld, train_sr_accuracy, train_mcd_avg, train_loss_workings = evaluate(model, criterion=criterion, epoch=epoch,
                                                                   loader=train_eval_loader,
                                                                   speaker_recog=speaker_recog,
                                                                   metrics = ('loss'))
@@ -405,6 +426,46 @@ def save_loss_workings(exp_name, epoch, loss_workings):
 
 #################################
 if __name__ == '__main__':
+    #calc_eval_curves(checkpoint_folder='checkpoints/vctk-us-vae-64-mean-lambda-0.5',
+    #                 data='/home/ubuntu/loop/data/vctk',
+    #                 speaker_recognition_checkpoint='/home/ubuntu/msc-project-master/msc-project-master/checkpoints/speaker-recognition-vctk-us/bestmodel.pth',
+    #                 speaker_recognition_exp_name='notebook_test',
+    #                 exp_name='vae-64-lambda-0_5-spkr-recog',
+    #                 max_seq_len=1000,
+    #                 nspk=22,
+    #                 gpu=0,
+    #                 batch_size=64,
+    #                 seed=1,
+    #                 eval_epochs=10,
+    #                 b_teacher_force=False,
+    #                 b_use_train_noise=False,
+    #                 start_epoch=1,
+    #                 end_epoch=90,
+    #                 step_epoch=1
+    #                 )
+
+    # switch back on...
+    # !!!!!!!! temporary hack !!!!!!!
+
+    calc_eval_curves(checkpoint_folder='checkpoints/vctk-us-vae-64-mean-lambda-zero-noise-2-final',
+                     data='/home/ubuntu/loop/data/vctk',
+                     speaker_recognition_checkpoint='/home/ubuntu/msc-project-master/msc-project-master/checkpoints/speaker-recognition-vctk-us/bestmodel.pth',
+                     speaker_recognition_exp_name='notebook_test',
+                     exp_name='vae-64-lambda-zero-noise-2-final-spkr-recog',
+                     max_seq_len=1000,
+                     nspk=22,
+                     gpu=0,
+                     batch_size=64,
+                     seed=1,
+                     eval_epochs=10,
+                     b_teacher_force=False,
+                     b_use_train_noise=False,
+                     start_epoch=90,
+                     end_epoch=180,
+                     step_epoch=1
+                     )
+
+def old():
     calc_eval_curves(checkpoint_folder='checkpoints/vctk-all',
                      data='/home/ubuntu/loop/data/vctk-16khz-cmu-no-boundaries-all',
                      speaker_recognition_checkpoint='checkpoints/speaker_recognition_vctk_all/bestmodel.pth',

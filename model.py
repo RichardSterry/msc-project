@@ -52,6 +52,7 @@ class Encoder(nn.Module):
     def __init__(self, opt):
         super(Encoder, self).__init__()
         self.hidden_size = opt.hidden_size
+        self.embedding_size = opt.embedding_size
         self.vocabulary_size = opt.vocabulary_size
         self.nspk = opt.nspk
         self.lut_p = nn.Embedding(self.vocabulary_size,
@@ -60,6 +61,7 @@ class Encoder(nn.Module):
         self.lut_s = nn.Embedding(self.nspk,
                                   self.hidden_size,
                                   max_norm=1.0)
+        self.F_i = nn.Linear(self.embedding_size, self.hidden_size)
 
     def forward(self, input, ident, speakers):
         if isinstance(input, tuple):
@@ -73,6 +75,10 @@ class Encoder(nn.Module):
         #ident = self.lut_s(speakers)
         if ident.dim() == 3:
             ident = ident.squeeze(1)
+
+        # project ident_u -> 256 here?
+        if self.hidden_size != self.embedding_size:
+            ident = self.F_i(ident)
 
         return outputs, ident
 
@@ -256,13 +262,26 @@ class Loop(nn.Module):
 
         if self.training:
             if full_feat is not None:
-                ident_u = self.embedding_encoder(full_feat, start)
+                ident_mu, ident_logvar = self.embedding_encoder(full_feat, start)
             else:
-                ident_u = self.embedding_encoder(tgt, start)
+                ident_mu, ident_logvar = self.embedding_encoder(tgt, start)
+
+            ident_u = self.reparameterize(ident_mu, ident_logvar)
         else:
             ident_u = embedding_array# self.embedding_encoder(embedding_array, True)
+            ident_mu = embedding_array
+            ident_logvar = embedding_array*0
 
         context, ident = self.encoder(src[0], ident_u, src[1])
         out, attn = self.decoder(x, ident, context, start)
 
-        return out, attn, ident_u
+        return out, attn, ident_u, ident_mu, ident_logvar
+
+    def reparameterize(self, mu, logvar):
+        if self.training:
+            std = torch.exp(0.5*logvar)
+            #eps = torch.randn_like(std)
+            eps = Variable(torch.randn(std.size())).cuda()
+            return eps.mul(std).add_(mu)
+        else:
+            return mu

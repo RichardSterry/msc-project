@@ -398,7 +398,8 @@ def generate_sample_with_loop(npz='', text='', spkr_id=1, gender=1,
                               npz_path='/home/ubuntu/loop/data/vctk-16khz-cmu-no-boundaries-all/numpy_features',
                               is_vctk_22=False,
                               output_file_override=None,
-                              embedding_array=None):
+                              embedding_array=None,
+                              b_reparam_ident=False):
     # npz = ''
     # text = 'Your tickets for the social issues'
     # text = 'see that girl watch that scene'
@@ -505,10 +506,20 @@ def generate_sample_with_loop(npz='', text='', spkr_id=1, gender=1,
     #if ident_override:
     #    loop_feat, attn = model([txt, spkr], feat, ident_override=ident_override)
     #else:
-    embedding_array = model.get_embeddings(feat, start=True)
+    ident_mu, ident_logvar = model.get_embeddings(feat, start=True)
+    if b_reparam_ident:
+        model.train() #!!temp
+
+    print(model.training)
+    if embedding_array is None:
+        embedding_array = model.reparameterize(ident_mu, ident_logvar)
+
+    if b_reparam_ident:
+        model.eval() #!!temp
+
     print(feat.size())
     print(feat.permute(0,1,2).size())
-    loop_feat, attn, ident_u = model([txt, spkr], feat.permute(0,1,2), embedding_array=embedding_array)
+    loop_feat, attn, ident_u, _, _ = model([txt, spkr], feat.permute(0,1,2), embedding_array=embedding_array)
 
     loop_feat, attn = trim_pred(loop_feat, attn)
 
