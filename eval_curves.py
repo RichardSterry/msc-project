@@ -405,6 +405,46 @@ def save_loss_workings(exp_name, epoch, loss_workings):
 
 #################################
 if __name__ == '__main__':
+    calc_eval_curves(checkpoint_folder='checkpoints/vctk-us-22-baseline',
+                     data='/home/ubuntu/loop/data/vctk',
+                     speaker_recognition_checkpoint='checkpoints/speaker-recognition-vctk-us/bestmodel.pth',
+                     speaker_recognition_exp_name='notebook_test',
+                     exp_name='vctk_us_20180814_write_up_teachF_noiseF',
+                     max_seq_len=1000,
+                     nspk=22,
+                     gpu=0,
+                     batch_size=64,
+                     seed=1,
+                     eval_epochs=10,
+                     b_teacher_force=False,
+                     b_use_train_noise=False,
+                     start_epoch=1,
+                     end_epoch=90,
+                     step_epoch=1
+                     )
+
+    calc_eval_curves(checkpoint_folder='checkpoints/vctk-us-22-baseline-noise-2',
+                     data='/home/ubuntu/loop/data/vctk',
+                     speaker_recognition_checkpoint='checkpoints/speaker-recognition-vctk-us/bestmodel.pth',
+                     speaker_recognition_exp_name='notebook_test',
+                     exp_name='vctk_us_noise_2_20180814_write_up_teachF_noiseF',
+                     max_seq_len=1000,
+                     nspk=22,
+                     gpu=0,
+                     batch_size=64,
+                     seed=1,
+                     eval_epochs=10,
+                     b_teacher_force=False,
+                     b_use_train_noise=False,
+                     start_epoch=90,
+                     end_epoch=180,
+                     step_epoch=1
+                     )
+
+
+def old_run_vctk_all_107_TF():
+    # 14-Aug-18
+    # old commands for filling in TF
     calc_eval_curves(checkpoint_folder='checkpoints/vctk-all',
                      data='/home/ubuntu/loop/data/vctk-16khz-cmu-no-boundaries-all',
                      speaker_recognition_checkpoint='checkpoints/speaker_recognition_vctk_all/bestmodel.pth',
@@ -440,7 +480,6 @@ if __name__ == '__main__':
                      end_epoch=163,
                      step_epoch=1
                      )
-
 
 def old_run():
     # 13-Aug-18: This was the code that was previously in main
