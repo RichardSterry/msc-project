@@ -9,7 +9,9 @@ cite paper and link to GitHub
 ## Part I: Introduction
 ### [Chapter 1: A Brief History of Speech Synthesis](introduction_resources.md)
 * Maybe links to websites/pages mentioned in my intro
+
 ### Chapter 2: Maybe link to papers?
+
 ### [Chapter 3: My Project](architecture_overview.md)
 
 <hr>
@@ -19,9 +21,11 @@ cite paper and link to GitHub
 #### §4.1 [The VCTK Dataset](vctk.md)
 * Samples of <transcript, audio> data
 * Speaker metadata
+
 #### §4.2 [WORLD Features](world_features.md)
 * Illustration of waveform -> 63 WORLD features
 * Example of the intepretability of lf0, the canonical WORLD feature
+
 #### §4.3-4 [Baseline VoiceLoop Models](voiceloop_baseline.md)
 * Sample synthesized speech from the two baseline models: VCTK-US-22 and VCTK-All-107
 * Training curves?
