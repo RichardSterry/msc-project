@@ -3,19 +3,11 @@
 * Sample synthesized speech from the two baseline models: VCTK-US-22 and VCTK-All-107
 * Training curves?
 
-[VCTK US_22 Samples](vctk_us_22_samples.md)
+## [VCTK US_22 Samples](vctk_us_22_samples.md)
 
-[VCTK All_107 Samples](vctk_all_107_samples.md)
+## [VCTK All_107 Samples](vctk_all_107_samples.md)
 
 
-## WORLD Features
-![wavform](vctk/samples/wavplot_301_102.png)
-![spectrogram](vctk/samples/wavplot_301_102_spectro.png)
-![world feats](vctk/world_feats/world_feats_301_117.png)
-
-## WORLD Feature Hack
-![lf0_hack](master/world_features_exploration/michael_johnson_hack_main_feats.png)
-<audio src="master/world_features_exploration/michael_johnson_lf0__hack.wav" controls></audio>
 
 
 ## VoiceLoop Synthesized Speech

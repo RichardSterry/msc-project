@@ -3,7 +3,7 @@
 * Samples of <transcript, audio> data
 * Speaker metadata
 
- ## Examples from the Datset
+ ## Examples from the Dataset
  * 40k examples across 108 speakers
  * Each example is of the form: <speaker, transcript, audio>
 
