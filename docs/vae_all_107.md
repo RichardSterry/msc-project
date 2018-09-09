@@ -1,11 +1,15 @@
 # Beta-VAE on All-107
 
+Factor 58 appears to discriminate the gender labels (which the model knew nothing about during training):
 <p align="center"><img width="70%" src="vae/all/vae_mu_distribs_by_factor.png" /></p>
 
 ### Factor 58 Controls Gender
-I picked utterances at random, computer their MAP embeddings (i.e. using mu|x) and generated samples using these embeddings with two changes:
+I picked utterances at random and computed their MAP embeddings (i.e. using mu|x). Then, for each embedding, I made a pair of copies with:
 * Factor 58 set to -1
 * Factor 58 set to +1 
+
+I then geerated speech samples and compared the results for each pair to hear the impact of varying factor 58.
+
 
 |  # | Factor 58 = -1 | Factor 58 = +1 |  
 | --- | --- | --- | 
