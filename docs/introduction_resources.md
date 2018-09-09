@@ -2,7 +2,7 @@
 Some interesting links:
 
 ### Section 1.1 The Early Days
-Wolfgang von Kepelen's [speaking machine]()https://en.wikipedia.org/wiki/Wolfgang_von_Kempelen\%27s_speaking_machine)
+Wolfgang von Kepelen's [speaking machine](https://en.wikipedia.org/wiki/Wolfgang_von_Kempelen\%27s_speaking_machine)
 
 Bell Labs' [Voder](https://en.wikipedia.org/wiki/Voder). Demo [here](https://www.youtube.com/watch?v=5hyI_dM5cGo)
 

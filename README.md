@@ -1,6 +1,6 @@
 # Disentangled Speaker Representations in Neural Text-to-Speech Synthesis
 
-Based on Facebook's [Voiceloop]()https://github.com/facebookresearch/loop) model.
+Based on Facebook's [Voiceloop](https://github.com/facebookresearch/loop) model.
 
 I use four architectures:
 
