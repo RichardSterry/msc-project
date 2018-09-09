@@ -21,10 +21,10 @@ I picked utterances at random, computer their MAP embeddings (i.e. using mu|x) a
 | 10 | <audio src=" vae/all/test_latext_58_embedding_2203_-1.0.wav" controls></audio> | <audio src=" vae/all/test_latext_58_embedding_2203_1.0.wav" controls></audio> |
 
 
-### Factor 36 Has no Impact
+### Factor 36 Has no Impact on Gender
 
 |  # | Factor 36 = -1 | Factor 36 = +1 |  
 | --- | --- | --- | 
-| 1 | <audio src=" vae/all/test_latext_36_embedding_1973_-1.0.wav" controls></audio> | <audio src=" vae/all/test_latext_58_embedding_1973_1.0.wav" controls></audio> |
-| 2 | <audio src=" vae/all/test_latext_36_embedding_2630_-1.0.wav" controls></audio> | <audio src=" vae/all/test_latext_58_embedding_2630_1.0.wav" controls></audio> |
-| 3 | <audio src=" vae/all/test_latext_36_embedding_2206_-1.0.wav" controls></audio> | <audio src=" vae/all/test_latext_58_embedding_2206_1.0.wav" controls></audio> |
+| 1 | <audio src=" vae/all/test_latext_36_embedding_1973_-1.0.wav" controls></audio> | <audio src=" vae/all/test_latext_36_embedding_1973_1.0.wav" controls></audio> |
+| 2 | <audio src=" vae/all/test_latext_36_embedding_2630_-1.0.wav" controls></audio> | <audio src=" vae/all/test_latext_36_embedding_2630_1.0.wav" controls></audio> |
+| 3 | <audio src=" vae/all/test_latext_36_embedding_2206_-1.0.wav" controls></audio> | <audio src=" vae/all/test_latext_36_embedding_2206_1.0.wav" controls></audio> |
