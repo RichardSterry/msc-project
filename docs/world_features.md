@@ -1,10 +1,10 @@
 # WORLD Features
 
-To illustrate WORLD acoustic feature, I will use the sentence 230:  
+To illustrate WORLD acoustic feature, I will use speaker 330 (an American female), sentence 230:  
 
 > "We talk about Mr. Michael Johnson, and he is awesome."
 
-For speaker 330 (an American female).
+
 
 
 * [Waveforms -> Acoustic Features](#from-waveforms-to-acoustic-features)
@@ -15,13 +15,13 @@ Start by listening to the **original VCTK sample (48kHz)**
 <audio src="master/world_features_exploration/p330_230.wav" controls></audio>
 
 The plot below shows the **waveform** (amplitude vs. time) of the utterance:
-![wavform](vctk/world_feats/p330_230_orig.png)
+![wavform](vctk/world_features_exporation/p330_230_orig.png)
 
 Here is the same utterance converted to a **spectrogram** (energy in each frequency band vs. time):
-![spectrogram](vctk/world_feats/p330_230_orig_spectro.png)
+![spectrogram](vctk/world_features_exporation/p330_230_orig_spectro.png)
 
 Now, we convert the utterance into sequences of **acoustic features** using the WORLD vocoder. All features have been normalised using the mean and standard deviation across the whole dataset. Plot shows only three of the 63 features.
-![world feats](vctk/world_feats/world_feats_301_117.png)
+![world feats](vctk/world_features_exporation/world_feats_301_117.png)
 
 
 Finally, we pass these features into the synthesis component of the WORLD vocoder to reconstruct the waveform. 
