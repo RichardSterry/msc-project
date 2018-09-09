@@ -13,4 +13,6 @@ Samples generated from the US-21 model, with embedding vectors z selected in one
 
 ## All-107
 Samples generated from the All-107 model. The page shows pairs of samples based on a starting embedding vector: one of the pair sets factor 58=-1; the other sets factor 58=+1.
+[BetaVAE Gender Flips](vae_all_107.md)
+
 
