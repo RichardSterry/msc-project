@@ -26,20 +26,16 @@ I used Facebook AI Research's [VoiceLoop](https://github.com/facebookresearch/lo
 #### §5.1 VoiceLoop can Represent Known Speakers
 * ##### [Samples of Baseline Model: VCTK US_21](vctk_us_22_samples.md)
 * ##### [Samples of Baseline Model: VCTK All_107 Samples](vctk_all_107_samples.md)
+
 #### §5.2 [The Speaker Embedding Space is Interpretable](speakers_in_voiceloop.md)
 
 ### Chapter 6: VoiceLoop with Utterance Embeddings
 #### [Samples of Utterance-US-21](utterance_embeddings_us.md)
 #### [Samples of Utterance-All-107](utterance_embeddings_all.md)
-* Adapting the VoiceLoop architecuture to embed reference utterance rather than speaker IDs
 
 <hr>
 
 ## Part III: Learning Disentangled Speaker Representations 
 ### Chapter 7:  [Disentanglement Using Labels: Fader Networks](fader_networks.md)
-* Samples of speech to show the impact of 'fading' between gender lables
 
 ### Chapter 8: [Disentanglement Without Labels: BetaVAE](betavae.md)
-* Utterance embeddings: taking speaker labels away
-* Basic VAE
-* Does BetaVAE help disentangle the generative attributes?
