@@ -29,15 +29,17 @@ The following audio has be **reconstructed using WORLD (16kHz)**:
 
 ### Interpreting lf0
 
-Here we illustrate the interpretability of one key feature, lf0 (log of F zero, the fundamental frequency or 'pitch'). I took the WORLD features for an utterance, and replaced the lf0 sequence with a quadratic profile that starts high, drops to a low value, and then rises back into the end of the sequence. 
+Here we illustrate the interpretability of one key feature, lf0 (log of F zero, the fundamental frequency or 'pitch'). I took the WORLD features for the utterance, and replaced the lf0 sequence with a quadratic profile that starts high, drops to a low value, and then rises back into the end of the sequence. 
 ![lf0_hack](master/world_features_exploration/michael_johnson_hack_main_feats.png)
 
 I then passed this modified set of WORLD features (i.e. all 'correct' except for lf0) into the synthesis module of the WORLD vocoder to generate the following waveform. You can clearly perceive the falling-and-rising pitch introduced by modifying the lf0 feature.
 
 <audio src="master/world_features_exploration/michael_johnson_lf0__hack.wav" controls></audio>
 
-In general the other WORLD features are not so easy to interpret (although domain experts can do so.) Throughout my project I will refer back to the lf0 feature as the canonical example of a WORLD acoustic feature because of it's interpretability.
+The spectrograms for the original and 'hacked' audio samples (and the difference) are shown below. It's possible to detect the pitch trajectory from the patterns of energy in the different frequency bands.
 
 ![lf0_hack](master/world_features_exploration/michael_johnson_hack_spectro_a.png)
 ![lf0_hack](master/world_features_exploration/michael_johnson_hack_spectro_b.png)
 ![lf0_hack](master/world_features_exploration/michael_johnson_hack_spectro_diff.png)
+
+In general the other WORLD features are not so easy to interpret (although domain experts can do so.) Throughout my project I will refer back to the lf0 feature as the canonical example of a WORLD acoustic feature because of it's interpretability.
