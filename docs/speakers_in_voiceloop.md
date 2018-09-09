@@ -25,22 +25,28 @@ Start by finding the average embeddings of males and and females. Then, define a
 ![wavform](ppt/baseline_speakers_pca_gender_transformation.png)
 
 I took a short piece of text from the BBC news website:
-> "How trying to stay cool could make the world even hotter."
+> _"How trying to stay cool could make the world even hotter."_
 
 * I first generated this string in the voice of an Irish female. 
 * Then, I applied the female->male transformation vector to the embedding to get a new embedding, to find a point in the space that doesn't correspond to any known speaker. The speech generated using this embedding sounded like an Irish male. 
 * Finally, I applied _double_ the gender transformation vector to the original embedding. The resulting audio sounding like a very deep, exaggerated Irish male voice.
 
-| Stella (Original) | Random (Original) | 
+| Description | Audio | 
 | --- | --- |  
 | Speaker 39 (Irish Female) | <audio src="ppt/baseline_gender_tranform_39_base.wav" controls></audio> |
-|+female->male transformation | <audio src="ppt/baseline_gender_tranform_39.wav" controls></audio> |
-|+2x female->male transformation | <audio src="ppt/baseline_gender_tranform_39_x2.wav" controls></audio> |
+|+ female -> male transformation | <audio src="ppt/baseline_gender_tranform_39.wav" controls></audio> |
+|+ 2x female -> male transformation | <audio src="ppt/baseline_gender_tranform_39_x2.wav" controls></audio> |
 
 # Accent Transformation
-_"More than two million player ratings were awarded by users."_
+I defined an English -> American accent transformation vector in a similar way. 
 
-Speaker 34 (English Female) <audio src="ppt/baseline_accent_transform_34_base.wav" controls></audio>
+I then took another short piece of text from the BBC news website:
+> _"More than two million player ratings were awarded by users."_
 
-+English->American transformation <audio src="ppt/baseline_accent_transform_34.wav" controls></audio>
+and generated it into speech in the voice of an English female. When I applied the English -> American vector to get a new speaker embedding and generated the text using that vector, the voice was transformed into an American female. 
+
+| Description | Audio | 
+| --- | --- |
+|Speaker 34 (English Female) |<audio src="ppt/baseline_accent_transform_34_base.wav" controls></audio> |
+|+ English -> American transformation |<audio src="ppt/baseline_accent_transform_34.wav" controls></audio> |
 
