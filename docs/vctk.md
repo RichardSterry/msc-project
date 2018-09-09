@@ -1,7 +1,10 @@
 # The VCTK Dataset
-* [CSTR VCTK Website](https://homepages.inf.ed.ac.uk/jyamagis/page3/page58/page58.html)
+VCTK is a multi-speaker, English language dataset consisting of pairs of short utterances in waveform format together with thir text transcripts. The data was collected by The Centre for Speech Technology Research (CSTR) at the University of Edinburgh: [CSTR VCTK Website](https://homepages.inf.ed.ac.uk/jyamagis/page3/page58/page58.html)
 
- ## Examples from the Dataset
+* [Examples](#examples)
+* [Speakers](#speakers)
+
+ ## Examples
  * 40k examples across 108 speakers
  * Each example is of the form: <speaker, transcript, audio>
 
