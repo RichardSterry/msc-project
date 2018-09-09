@@ -1,10 +1,8 @@
 # WORLD Features
 
-To illustrate WORLD acoustic feature, I will use speaker 330 (an American female), sentence 230:  
+To illustrate WORLD acoustic features, I will use speaker 330 (an American female), sentence 230:  
 
 > "We talk about Mr. Michael Johnson, and he is awesome."
-
-
 
 
 * [Waveforms -> Acoustic Features](#from-waveforms-to-acoustic-features)
@@ -40,4 +38,6 @@ I then passed this modified set of WORLD features (i.e. all 'correct' except for
 
 In general the other WORLD features are not so easy to interpret (although domain experts can do so.) Throughout my project I will refer back to the lf0 feature as the canonical example of a WORLD acoustic feature because of it's interpretability.
 
-![lf0_hack](master/world_features_exploration/michael_johnson_hack_main_feats.png)
+![lf0_hack](master/world_features_exploration/michael_johnson_hack_spectro_a.png)
+![lf0_hack](master/world_features_exploration/michael_johnson_hack_spectro_b.png)
+![lf0_hack](master/world_features_exploration/michael_johnson_hack_spectro_diff.png)
