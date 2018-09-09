@@ -14,6 +14,13 @@ The plot below shows the same utterance converted to a **spectrogram** (energy i
 The plot below shows the utterance converted into sequences of **acoustic features** using the WORLD vocoder. All features have been normalised using the mean and standard deviation across the whole dataset. Plot shows only three of the 63 features.
 ![world feats](vctk/world_feats/world_feats_301_117.png)
 
+**Original VCTK sample (48kHz)**
+<audio src="master/world_features_exploration/p330_230.wav" controls></audio>
+
+**Reconstructed using WORLD (16kHz)**
+<audio src="master/world_features_exploration/p330_230_12.wav" controls></audio>
+
+
 ### Interpreting lf0
 
 Here we illustrate the interpretability of one key feature, lf0 (log of F zero, the fundamental frequency or 'pitch'). I took the WORLD features for an utterance, and replaced the lf0 sequence with a quadratic profile that starts high, drops to a low value, and then rises back into the end of the sequence. 
