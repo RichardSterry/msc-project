@@ -1,23 +1,31 @@
 # WORLD Features
 
+To illustrate WORLD acoustic feature, I will use the sentence 230:  
+
+> "We talk about Mr. Michael Johnson, and he is awesome."
+
+For speaker 330 (an American female).
+
+
 * [Waveforms -> Acoustic Features](#from-waveforms-to-acoustic-features)
 * [Interpreting lf0](#interpreting-lf0)
 
 ### From Waveforms to Acoustic Features
-
-The plot below shows the **waveform** (amplitude vs. time) of a sample utterance:
-![wavform](vctk/samples/wavplot_301_102.png)
-
-The plot below shows the same utterance converted to a **spectrogram** (energy in each frequency band vs. time)
-![spectrogram](vctk/samples/wavplot_301_102_spectro.png)
-
-The plot below shows the utterance converted into sequences of **acoustic features** using the WORLD vocoder. All features have been normalised using the mean and standard deviation across the whole dataset. Plot shows only three of the 63 features.
-![world feats](vctk/world_feats/world_feats_301_117.png)
-
-**Original VCTK sample (48kHz)**
+Start by listening to the **original VCTK sample (48kHz)**
 <audio src="master/world_features_exploration/p330_230.wav" controls></audio>
 
-**Reconstructed using WORLD (16kHz)**
+The plot below shows the **waveform** (amplitude vs. time) of the utterance:
+![wavform](vctk/world_feats/p330_230_orig.png)
+
+Here is the same utterance converted to a **spectrogram** (energy in each frequency band vs. time):
+![spectrogram](vctk/world_feats/p330_230_orig_spectro.png)
+
+Now, we convert the utterance into sequences of **acoustic features** using the WORLD vocoder. All features have been normalised using the mean and standard deviation across the whole dataset. Plot shows only three of the 63 features.
+![world feats](vctk/world_feats/world_feats_301_117.png)
+
+
+Finally, we pass these features into the synthesis component of the WORLD vocoder to reconstruct the waveform. 
+The following audio has be **reconstructed using WORLD (16kHz)**:
 <audio src="master/world_features_exploration/p330_230_12.wav" controls></audio>
 
 
@@ -31,3 +39,5 @@ I then passed this modified set of WORLD features (i.e. all 'correct' except for
 <audio src="master/world_features_exploration/michael_johnson_lf0__hack.wav" controls></audio>
 
 In general the other WORLD features are not so easy to interpret (although domain experts can do so.) Throughout my project I will refer back to the lf0 feature as the canonical example of a WORLD acoustic feature because of it's interpretability.
+
+![lf0_hack](master/world_features_exploration/michael_johnson_hack_main_feats.png)
