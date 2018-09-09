@@ -8,9 +8,8 @@ I used Facebook AI Research's [VoiceLoop](https://github.com/facebookresearch/lo
 
 ## Part I: Introduction
 ### [Chapter 1: A Brief History of Speech Synthesis](introduction_resources.md)
-* Maybe links to websites/pages mentioned in my intro
 
-### Chapter 2: Maybe link to papers?
+### Chapter 2: Disentanglement
 
 ### [Chapter 3: My Project](architecture_overview.md)
 
@@ -19,8 +18,6 @@ I used Facebook AI Research's [VoiceLoop](https://github.com/facebookresearch/lo
 ## Part II: Speaker Representations in VoiceLoop 
 ### Chapter 4: The VoiceLoop Model
 #### §4.1 [The VCTK Dataset](vctk.md)
-* Samples of <transcript, audio> data
-* Speaker metadata
 
 #### §4.2 [WORLD Features](world_features.md)
 * Illustration of waveform -> 63 WORLD features
