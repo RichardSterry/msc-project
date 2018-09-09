@@ -18,15 +18,8 @@ I used Facebook AI Research's [VoiceLoop](https://github.com/facebookresearch/lo
 ## Part II: Speaker Representations in VoiceLoop 
 ### Chapter 4: The VoiceLoop Model
 #### §4.1 [The VCTK Dataset](vctk.md)
-
 #### §4.2 [WORLD Features](world_features.md)
-* Illustration of waveform -> 63 WORLD features
-* Example of the intepretability of lf0, the canonical WORLD feature
-
 #### §4.3-4 [Baseline VoiceLoop Models](voiceloop_baseline.md)
-* Sample synthesized speech from the two baseline models: VCTK-US-22 and VCTK-All-107
-* Training curves?
-* Add architecture diagram
 
 
 ### Chapter 5: Speaker Embeddings
