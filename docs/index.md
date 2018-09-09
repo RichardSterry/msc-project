@@ -30,8 +30,8 @@ I used Facebook AI Research's [VoiceLoop](https://github.com/facebookresearch/lo
 #### §5.2 [The Speaker Embedding Space is Interpretable](speakers_in_voiceloop.md)
 
 ### Chapter 6: VoiceLoop with Utterance Embeddings
-#### [Samples of Utterance-US-21](utterance_embeddings_us.md)
-#### [Samples of Utterance-All-107](utterance_embeddings_all.md)
+* #### [Samples of Utterance-US-21](utterance_embeddings_us.md)
+* #### [Samples of Utterance-All-107](utterance_embeddings_all.md)
 
 <hr>
 
