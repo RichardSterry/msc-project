@@ -21,7 +21,7 @@ Here is the same utterance converted to a **spectrogram** (energy in each freque
 ![spectrogram](vctk/world_features_exporation/p330_230_orig_spectro.png)
 
 Now, we convert the utterance into sequences of **acoustic features** using the WORLD vocoder. All features have been normalised using the mean and standard deviation across the whole dataset. Plot shows only three of the 63 features.
-![world feats](vctk/world_features_exporation/world_feats_301_117.png)
+![world feats](vctk/world_features_exporation/michael_johnson_world_feats.png)
 
 
 Finally, we pass these features into the synthesis component of the WORLD vocoder to reconstruct the waveform. 
