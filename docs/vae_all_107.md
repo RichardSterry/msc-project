@@ -32,3 +32,5 @@ I then geerated speech samples and compared the results for each pair to hear th
 | 1 | <audio src=" vae/all/test_latext_36_embedding_1973_-1.0.wav" controls></audio> | <audio src=" vae/all/test_latext_36_embedding_1973_1.0.wav" controls></audio> |
 | 2 | <audio src=" vae/all/test_latext_36_embedding_2630_-1.0.wav" controls></audio> | <audio src=" vae/all/test_latext_36_embedding_2630_1.0.wav" controls></audio> |
 | 3 | <audio src=" vae/all/test_latext_36_embedding_2206_-1.0.wav" controls></audio> | <audio src=" vae/all/test_latext_36_embedding_2206_1.0.wav" controls></audio> |
+| 4 | <audio src=" vae/all/test_latext_36_embedding_776_-1.0.wav" controls></audio> | <audio src=" vae/all/test_latext_36_embedding_776_1.0.wav" controls></audio> |
+| 5 | <audio src=" vae/all/test_latext_36_embedding_2389_-1.0.wav" controls></audio> | <audio src=" vae/all/test_latext_36_embedding_2389_1.0.wav" controls></audio> |
