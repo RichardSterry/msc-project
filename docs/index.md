@@ -24,13 +24,9 @@ I used Facebook AI Research's [VoiceLoop](https://github.com/facebookresearch/lo
 
 ### Chapter 5: Speaker Embeddings
 #### §5.1 VoiceLoop can Represent Known Speakers
-##### [Samples of Baseline Model: VCTK US_21](vctk_us_22_samples.md)
-##### [Samples of Baseline Model: VCTK All_107 Samples](vctk_all_107_samples.md)
+* ##### [Samples of Baseline Model: VCTK US_21](vctk_us_22_samples.md)
+* ##### [Samples of Baseline Model: VCTK All_107 Samples](vctk_all_107_samples.md)
 #### §5.2 [The Speaker Embedding Space is Interpretable](speakers_in_voiceloop.md)
-* Subjective samples to support idea that VoiceLoop can represent different voices
-* t-sne, pca plots
-* Examples of voice interpolation
-* Maybe roll this into the previous section? Or keep separate to match the report?
 
 ### Chapter 6: VoiceLoop with Utterance Embeddings
 #### [Samples of Utterance-US-21](utterance_embeddings_us.md)
