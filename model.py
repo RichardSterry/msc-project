@@ -255,12 +255,18 @@ class Loop(nn.Module):
         x = self.init_input(tgt, start)
 
         if self.training:
-            if full_feat is not None:
+            if full_feat:
                 ident_u = self.embedding_encoder(full_feat, start)
             else:
                 ident_u = self.embedding_encoder(tgt, start)
         else:
-            ident_u = embedding_array# self.embedding_encoder(embedding_array, True)
+            if embedding_array is not None:
+                ident_u = embedding_array# self.embedding_encoder(embedding_array, True)
+            else:
+                if full_feat:
+                    ident_u = self.embedding_encoder(full_feat, start)
+                else:
+                    ident_u = self.embedding_encoder(tgt, start)
 
         context, ident = self.encoder(src[0], ident_u, src[1])
         out, attn = self.decoder(x, ident, context, start)

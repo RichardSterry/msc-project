@@ -423,6 +423,27 @@ if __name__ == '__main__':
                      step_epoch=1
                      )
 
+
+def old():
+    # 15-Aug: original version
+    calc_eval_curves(checkpoint_folder='checkpoints/vctk-all',
+                     data='/home/ubuntu/loop/data/vctk-16khz-cmu-no-boundaries-all',
+                     speaker_recognition_checkpoint='checkpoints/speaker_recognition_vctk_all/bestmodel.pth',
+                     speaker_recognition_exp_name='notebook_test',
+                     exp_name='vctk_all_20180716_teachT_noiseT',
+                     max_seq_len=1000,
+                     nspk=107,
+                     gpu=0,
+                     batch_size=64,
+                     seed=1,
+                     eval_epochs=10,
+                     b_teacher_force=True,
+                     b_use_train_noise=True,
+                     start_epoch=1,
+                     end_epoch=90,
+                     step_epoch=1
+                     )
+
     calc_eval_curves(checkpoint_folder='checkpoints/vctk-all-2-v2',
                      data='/home/ubuntu/loop/data/vctk-16khz-cmu-no-boundaries-all',
                      speaker_recognition_checkpoint='checkpoints/speaker_recognition_vctk_all/bestmodel.pth',

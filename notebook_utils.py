@@ -508,6 +508,7 @@ def generate_sample_with_loop(npz='', text='', spkr_id=1, gender=1,
     embedding_array = model.get_embeddings(feat, start=True)
     print(feat.size())
     print(feat.permute(0,1,2).size())
+    print(embedding_array.size())
     loop_feat, attn, ident_u = model([txt, spkr], feat.permute(0,1,2), embedding_array=embedding_array)
 
     loop_feat, attn = trim_pred(loop_feat, attn)
