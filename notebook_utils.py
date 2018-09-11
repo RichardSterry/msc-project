@@ -474,7 +474,7 @@ def generate_sample_with_loop(npz='', text='', spkr_id=1, gender=1,
     if text is not '':
         # use specified text string
         # extract phonemes from the text
-        print(text)
+        #print(text)
 
         #_, feat, pre_calc_feat = npy_loader_phonemes(os.path.join(npz_path, npz))
 
@@ -517,8 +517,8 @@ def generate_sample_with_loop(npz='', text='', spkr_id=1, gender=1,
     if b_reparam_ident:
         model.eval() #!!temp
 
-    print(feat.size())
-    print(feat.permute(0,1,2).size())
+    #print(feat.size())
+    #print(feat.permute(0,1,2).size())
     loop_feat, attn, ident_u, _, _ = model([txt, spkr], feat.permute(0,1,2), embedding_array=embedding_array)
 
     loop_feat, attn = trim_pred(loop_feat, attn)
@@ -545,7 +545,8 @@ def generate_sample_with_loop(npz='', text='', spkr_id=1, gender=1,
                         norm_path)
 
     # generate .wav file from original features for reference
-    if npz is not '':
+    #if npz is not '':
+    if False: # TEMP: don't want to keep generating, slows us down
         output_orig_fname = os.path.basename(npz)[:-4] + '.orig'
         generate_merlin_wav(feat[:, 0, :].data.cpu().numpy(),
                             output_dir,

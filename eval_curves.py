@@ -426,34 +426,34 @@ def save_loss_workings(exp_name, epoch, loss_workings):
 
 #################################
 if __name__ == '__main__':
-    #calc_eval_curves(checkpoint_folder='checkpoints/vctk-us-vae-64-mean-lambda-0.5',
-    #                 data='/home/ubuntu/loop/data/vctk',
-    #                 speaker_recognition_checkpoint='/home/ubuntu/msc-project-master/msc-project-master/checkpoints/speaker-recognition-vctk-us/bestmodel.pth',
-    #                 speaker_recognition_exp_name='notebook_test',
-    #                 exp_name='vae-64-lambda-0_5-spkr-recog',
-    #                 max_seq_len=1000,
-    #                 nspk=22,
-    #                 gpu=0,
-    #                 batch_size=64,
-    #                 seed=1,
-    #                 eval_epochs=10,
-    #                 b_teacher_force=False,
-    #                 b_use_train_noise=False,
-    #                 start_epoch=1,
-    #                 end_epoch=90,
-    #                 step_epoch=1
-    #                 )
+    calc_eval_curves(checkpoint_folder='checkpoints/vctk-all-vae-64-mean-beta-1',
+                     data='/home/ubuntu/loop/data/vctk-16khz-cmu-no-boundaries-all',
+                     speaker_recognition_checkpoint='/home/ubuntu/msc-project-master/msc-project-master/checkpoints/speaker_recognition_vctk_all/bestmodel.pth',
+                     speaker_recognition_exp_name='notebook_test',
+                     exp_name='vae-all-64-beta-1-spkr-recog',
+                     max_seq_len=1000,
+                     nspk=107,
+                     gpu=0,
+                     batch_size=64,
+                     seed=1,
+                     eval_epochs=10,
+                     b_teacher_force=False,
+                     b_use_train_noise=False,
+                     start_epoch=1,
+                     end_epoch=90,
+                     step_epoch=1
+                     )
 
     # switch back on...
     # !!!!!!!! temporary hack !!!!!!!
 
-    calc_eval_curves(checkpoint_folder='checkpoints/vctk-us-vae-64-mean-lambda-zero-noise-2-final',
-                     data='/home/ubuntu/loop/data/vctk',
-                     speaker_recognition_checkpoint='/home/ubuntu/msc-project-master/msc-project-master/checkpoints/speaker-recognition-vctk-us/bestmodel.pth',
+    calc_eval_curves(checkpoint_folder='checkpoints/vctk-all-vae-64-mean-beta-1-noise-2',
+                     data='/home/ubuntu/loop/data/vctk-16khz-cmu-no-boundaries-all',
+                     speaker_recognition_checkpoint='/home/ubuntu/msc-project-master/msc-project-master/checkpoints/speaker_recognition_vctk_all/bestmodel.pth',
                      speaker_recognition_exp_name='notebook_test',
-                     exp_name='vae-64-lambda-zero-noise-2-final-spkr-recog',
+                     exp_name='vae-all-64-beta-1-noise-2-spkr-recog',
                      max_seq_len=1000,
-                     nspk=22,
+                     nspk=107,
                      gpu=0,
                      batch_size=64,
                      seed=1,
