@@ -10,6 +10,7 @@ import torch.nn as nn
 from torch.autograd import Variable
 from torch.nn import Parameter
 import torch.nn.functional as F
+import model_discriminator as md
 
 from data import NpzFolder, NpzLoader, TBPTTIter
 from utils import create_output_dir, wrap, check_grad
@@ -39,9 +40,9 @@ def get_loaders(data_path='data/vctk', max_seq_len=1000, batch_size=64, nspk=22)
     return train_loader, valid_loader
 
 ###############################
-class RecognitionNet(nn.Module):
+class GenderRecognitionNet(nn.Module):
     def __init__(self, seq_len, nspk):
-        super(RecognitionNet, self).__init__()
+        super(GenderRecognitionNet, self).__init__()
         self.conv1 = nn.Conv2d(1, 32, 3)  # 1 input channel, 32 output channels, 3x3 2d convolution
         self.bn1 = nn.BatchNorm2d(32)
 
@@ -61,7 +62,7 @@ class RecognitionNet(nn.Module):
         #self.fc1 = nn.Linear(1 * 32 * 43, 256)  # 53 = 63 features - 5*2 for the conv filters (no padding)
         self.fc2 = nn.Linear(256, 256)
         #self.fc3 = nn.utils.weight_norm(nn.Linear(256, nspk))
-        self.fc3 = nn.Linear(256, nspk)
+        self.fc3 = nn.Linear(256, 2)
 
         # take out bias term
         # try strides
@@ -100,16 +101,16 @@ class RecognitionNet(nn.Module):
 
 
 #####################################
-class SpeakerRecognition(object):
+class GenderRecognition(object):
     def __init__(self,
                  data_path='data/vctk',
-                 checkpoint='checkpoints/speaker_recognition/lastmodel.pth',
+                 checkpoint='checkpoints/gender_recognition/lastmodel.pth',
                  seq_len=300,
                  nspk=22,
                  max_seq_len=1000,
                  batch_size=64,
                  gpu=0,
-                 exp_name='speaker_recognition'):
+                 exp_name='gender_recognition'):
 
         self.data_path = data_path
         self.checkpoint = checkpoint
@@ -125,8 +126,9 @@ class SpeakerRecognition(object):
                                                            batch_size=self.batch_size,
                                                            nspk=self.nspk)  # TODO: add all params
 
-        self.net = RecognitionNet(seq_len=self.seq_len, nspk=self.nspk)
+        self.net = GenderRecognitionNet(seq_len=self.seq_len, nspk=self.nspk)
         self.criterion = nn.CrossEntropyLoss().cuda()
+        self.speaker_info = md.get_speaker_info_for_discriminator()
 
         if gpu > -1:
             self.net.cuda()
@@ -179,7 +181,11 @@ class SpeakerRecognition(object):
 
             # TODO: run with gradients turned off?
             output = self.net(target[0].transpose(0, 1).unsqueeze(1))
-            loss = self.criterion(output, spkr.view(-1))
+            gender_gt = np.array(self.speaker_info.iloc[spkr.cpu().data.numpy().flatten()].gender == 'M').astype(float)
+            is_male_v = Variable(torch.from_numpy(gender_gt)).long().cuda()
+            gender_pred = output.cpu().data.numpy().argmax(1)
+
+            loss = self.criterion(output, is_male_v.view(-1))
 
             # output, _ = model([input, spkr], target[0])
             # loss = criterion(output, target[0], target[1])
@@ -191,15 +197,17 @@ class SpeakerRecognition(object):
 
             total_samples += len(spkr)
 
-            spkr_gt = spkr.cpu().view(-1).data.numpy()
-            spkr_pred = output.cpu().data.numpy().argmax(1)
+            #spkr_gt = spkr.cpu().view(-1).data.numpy()
+            #spkr_pred = output.cpu().data.numpy().argmax(1)
 
-            correct_pred = spkr_gt == spkr_pred
+
+
+            correct_pred = gender_gt == gender_pred
             num_correct_pred = np.sum(correct_pred)
             total_correct += num_correct_pred
 
-            all_pred.append(spkr_pred)
-            all_gt.append(spkr_gt)
+            all_pred.append(gender_pred)
+            all_gt.append(gender_gt)
             all_correct.append(correct_pred)
 
         accuracy = total_correct / total_samples
@@ -224,9 +232,12 @@ class SpeakerRecognition(object):
         num_samples = len(spkr)
 
         spkr_gt = spkr.cpu().view(-1).data.numpy()
-        spkr_pred = output.cpu().data.numpy().argmax(1)
 
-        correct_pred = spkr_gt == spkr_pred
+        gender_gt = np.array(self.speaker_info.iloc[spkr.cpu().data.numpy().flatten()].gender == 'M')
+
+        gender_pred = output.cpu().data.numpy().argmax(1)
+
+        correct_pred = gender_gt == gender_pred
         num_correct_pred = np.sum(correct_pred)
 
 
@@ -237,7 +248,7 @@ class SpeakerRecognition(object):
 
         best_acc = 0
         train_losses = []
-        self.training_monitor = trainmon.TrainingMonitor(file='speaker_recognition', exp_name=self.exp_name,
+        self.training_monitor = trainmon.TrainingMonitor(file='gender_recognition', exp_name=self.exp_name,
                                                          b_append=True, path='training_logs',
                                                         columns=('epoch', 'update_time', 'train_loss', 'valid_loss', 'train_acc', 'valid_acc'))
 
@@ -267,13 +278,17 @@ class SpeakerRecognition(object):
                     target = wrap(feat)
                     spkr = wrap(spkr)
 
+                    is_male = np.array(self.speaker_info.iloc[spkr.cpu().data.numpy().flatten()].gender == 'M').astype(float)
+                    is_male_v = Variable(torch.from_numpy(is_male)).long().cuda()
+                    #print type(is_male_v)
+
                     # Zero gradients
                     if start:
                         self.optimizer.zero_grad()
 
                     # Forward
                     output = self.net(target[0].transpose(0,1).unsqueeze(1))
-                    loss = self.criterion(output, spkr.view(-1))
+                    loss = self.criterion(output, is_male_v.view(-1))
 
                     # Backward
                     loss.backward()
@@ -339,7 +354,7 @@ class SpeakerRecognition(object):
 #################################
 
 
-def train_speaker_recognition(  gpu=0,
+def train_gender_recognition(  gpu=0,
                                 seed=1,
                                 data_path = '/home/ubuntu/loop/data/vctk',
                                 nspk = 22,
@@ -347,14 +362,14 @@ def train_speaker_recognition(  gpu=0,
                                 seq_len = 300,
                                 batch_size = 64,
                                 num_epochs = 5,
-                                exp_name='speaker_recognition',
+                                exp_name='gender_recognition',
                                 checkpoint=None):
     torch.manual_seed(seed)
     if gpu>-1:
         torch.cuda.set_device(gpu)
         torch.cuda.manual_seed(seed)
 
-    sr = SpeakerRecognition(data_path=data_path,
+    sr = GenderRecognition(data_path=data_path,
                             checkpoint=checkpoint,
                             seq_len=seq_len,
                             nspk=nspk,
@@ -377,8 +392,8 @@ def train_speaker_recognition(  gpu=0,
 
 
 
-def main(exp_name = 'speaker_recognition', num_epochs=2):
-    sr = train_speaker_recognition(num_epochs=num_epochs)
+def main(exp_name = 'gender_recognition', num_epochs=2):
+    sr = train_gender_recognition(num_epochs=num_epochs)
 
 
 if __name__ == '__main__':

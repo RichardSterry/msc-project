@@ -274,7 +274,7 @@ def evaluate(model, criterion, epoch, loader, speaker_info, discriminator, discr
 
         # speaker recognition on synth samples
         if 'speaker_recognition' in metrics:
-            num_correct_pred, num_samples, correct_pred = speaker_recog.evaluate_synth(feat=output, spkr=spkr)
+            num_correct_pred, num_samples, correct_pred, _ = speaker_recog.evaluate_synth(feat=output, spkr=spkr)
 
             sr_total_correct += num_correct_pred
             sr_total_samples += len(spkr)
@@ -443,7 +443,7 @@ def calc_eval_curves(checkpoint_folder='models/vctk-all/',
 
         # load discriminator
         discriminator_checkpoint = this_checkpoint_file.replace("epoch_", "discriminator_epoch_")
-        discriminator = md.LatentDiscriminator()
+        discriminator = md.LatentDiscriminator(254) # changed 20-Aug-18 to explicitly match concat method
         discriminator.cuda()
         discriminator.load_state_dict(torch.load(discriminator_checkpoint, map_location=lambda storage, loc: storage))
 
@@ -507,22 +507,40 @@ def save_loss_workings(exp_name, epoch, loss_workings):
 
 #################################
 if __name__ == '__main__':
-    calc_eval_curves(checkpoint_folder='checkpoints/fader_recreate_baseline_20180718_debug',
+    calc_eval_curves(checkpoint_folder='checkpoints/fader_gender_concat_baseline163_20180720',
                      data='/home/ubuntu/loop/data/vctk-16khz-cmu-no-boundaries-all',
                      speaker_recognition_checkpoint='/home/ubuntu/msc-project-master/msc-project-master/checkpoints/speaker_recognition_vctk_all/bestmodel.pth',
                      speaker_recognition_exp_name='notebook_test',
-                     exp_name='fader_recreate_baseline_eval_curves_20180718_debug',
+                     exp_name='fader_concat_baseline163_spkr_recog_20180820_FF',
                      max_seq_len=1000,
                      nspk=107,
                      gpu=0,
                      batch_size=64,
                      seed=1,
                      eval_epochs=10,
-                     b_teacher_force=True,
-                     b_use_train_noise=True,
-                     start_epoch=1,
-                     end_epoch=2,
+                     b_teacher_force=False,
+                     b_use_train_noise=False,
+                     start_epoch=163,
+                     end_epoch=237,
                      step_epoch=1,
-                     b_debug=True
+                     b_debug=False
                      )
 
+    # calc_eval_curves(checkpoint_folder='checkpoints/fader_recreate_baseline_20180718_debug',
+    #                  data='/home/ubuntu/loop/data/vctk-16khz-cmu-no-boundaries-all',
+    #                  speaker_recognition_checkpoint='/home/ubuntu/msc-project-master/msc-project-master/checkpoints/speaker_recognition_vctk_all/bestmodel.pth',
+    #                  speaker_recognition_exp_name='notebook_test',
+    #                  exp_name='fader_recreate_baseline_eval_curves_20180718_debug',
+    #                  max_seq_len=1000,
+    #                  nspk=107,
+    #                  gpu=0,
+    #                  batch_size=64,
+    #                  seed=1,
+    #                  eval_epochs=10,
+    #                  b_teacher_force=True,
+    #                  b_use_train_noise=True,
+    #                  start_epoch=1,
+    #                  end_epoch=2,
+    #                  step_epoch=1,
+    #                  b_debug=True
+    #                  )
