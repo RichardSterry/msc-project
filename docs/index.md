@@ -7,7 +7,8 @@ Computational Statistics & Machine Learning, UCL.
 
 My written report is [here](docs/report/COMPGM99-Sterry-Richard.pdf).
 
-I used Facebook AI Research's [VoiceLoop](https://github.com/facebookresearch/loop) model as the starting point. Many thanks to FAIR for making their implementation public on GitHub. 
+I used Facebook AI Research's [VoiceLoop](https://github.com/facebookresearch/loop) model as the 
+starting point. Thanks to FAIR for making their implementation public on GitHub. 
 
 Many thanks to Jiameng Gao and Papercup Technologies for hosting my project. Also to Mark 
 Herbster for providing academic supervision.
