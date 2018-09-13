@@ -1,10 +1,16 @@
 
 # Disentangled Speaker Representations in Neural Text-To-Speech Synthesis
 ### Richard Sterry, September 2018
-Audio samples and supplementary materials in support of my project for the MSc Computational Statistics & Machine Learning, UCL.
+This website presents audio samples and supplementary materials in support of my project for the 
+MSc 
+Computational Statistics & Machine Learning, UCL.
+
+My written report is [here](docs/report/COMPGM99-Sterry-Richard.pdf).
 
 I used Facebook AI Research's [VoiceLoop](https://github.com/facebookresearch/loop) model as the starting point. Many thanks to FAIR for making their implementation public on GitHub. 
 
+Many thanks to Jiameng Gao and Papercup Technologies for hosting my project. Also to Mark 
+Herbster for providing academic supervision.
 
 ## Part I: Introduction
 ### [Chapter 1: A Brief History of Speech Synthesis](introduction_resources.md)
