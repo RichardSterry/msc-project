@@ -5,7 +5,7 @@ This website presents audio samples and supplementary materials in support of my
 MSc 
 Computational Statistics & Machine Learning, UCL.
 
-My written report is [here](docs/report/COMPGM99-Sterry-Richard.pdf).
+My written report is [here](report/COMPGM99-Sterry-Richard.pdf).
 
 I used Facebook AI Research's [VoiceLoop](https://github.com/facebookresearch/loop) model as the 
 starting point. Thanks to FAIR for making their implementation public on GitHub. 
