@@ -1,8 +1,25 @@
 # Samples from Baseline Model VCTK_All_107
 
-"The achievement was to have raised himself up, from very modest origins, in a tiny society of fiercely limited opportunity"
-https://www.newyorker.com/books/page-turner/the-shattering-double-vision-of-v-s-naipaul
+For each speaker, I give two original samples from the VCTK dataset and two samples generated 
+using the baseline model VCTK_All_107.
 
+The first generated sample is for the "Michael Johnson" sentence. For a handful of the speakers, 
+this sentence appears in their training or validation sets (although note that here we don't use 
+teacher forcing, even if the ground-truth WORLD features are available). For 
+the vast 
+majority of speakers 
+it's an unseen sentence.
+
+The second generated samples is based on a short piece of text taken from the New Yorker website 
+(https://www
+.newyorker.com/books/page-turner/the-shattering-double-vision-of-v-s-naipaul):
+> _"The achievement was to have raised himself up, from very modest origins, in a tiny society of 
+fiercely limited opportunity"_
+
+The model is not very robust: in many cases it fails to generate the entire sentence. However, it
+ generally makes a good attempt. Even when the model struggles to be intelligible, the voice 
+ can be recognised as similar to the speaker. My project is focused on speaker adaptation 
+ rather than robustness.
 
 | Stella (Original) | Random (Original) | VCTK id | <font color="red">MJ (VoiceLoop)</font> | <font color="red">Achievement (VoiceLoop)</font> | 
 | --- | --- | --- | --- | --- |
