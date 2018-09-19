@@ -10,7 +10,7 @@ the vast
 majority of speakers 
 it's an unseen sentence.
 
-The second generated samples is based on a short piece of text taken from the New Yorker website 
+The second generated sample is based on a short piece of text taken from the New Yorker website 
 (https://www
 .newyorker.com/books/page-turner/the-shattering-double-vision-of-v-s-naipaul):
 > _"The achievement was to have raised himself up, from very modest origins, in a tiny society of 
