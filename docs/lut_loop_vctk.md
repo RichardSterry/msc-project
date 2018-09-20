@@ -8,8 +8,7 @@ I took a short piece of text from the New Yorker website (https://www.newyorker.
 fiercely limited opportunity"_
 
 
-| Speaker | Original 1 | Original 2 | <font color="red">lut-loop-vctk</font> | <font color="red">MSc Project 
-VoiceLoop-Speaker</font> |
+| Speaker | Original 1 | Original 2 | <font color="red">lut-loop-vctk</font> | <font color="red">MSc Project VoiceLoop-Speaker</font> |
 | --- | --- | --- |  --- | --- |
 | **225 F/English** | <audio src="master/vctk_all_samples/p225_001.orig.wav" controls></audio> | <audio src="master/vctk_all_samples/p225_200.orig.wav" controls></audio> | <audio src="lut_loop_vctk/lut_loop_vctk_0_p225.wav" controls></audio> | <audio src="master/vctk_all_samples/the_achievement_p225.wav" controls></audio> |
 | **226 M/English** | <audio src="master/vctk_all_samples/p226_001.orig.wav" controls></audio> | <audio src="master/vctk_all_samples/p226_200.orig.wav" controls></audio> | <audio src="lut_loop_vctk/lut_loop_vctk_1_p226.wav" controls></audio> | <audio src="master/vctk_all_samples/the_achievement_p226.wav" controls></audio> |
